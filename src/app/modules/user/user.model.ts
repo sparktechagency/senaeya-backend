@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { StatusCodes } from 'http-status-codes';
-import { model, Schema } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 import config from '../../../config';
 import { USER_ROLES } from '../../../enums/user';
 import AppError from '../../../errors/AppError';
@@ -10,7 +10,7 @@ const userSchema = new Schema<IUser, UserModel>(
      {
           name: {
                type: String,
-               required: true,
+               required: false,
           },
           role: {
                type: String,
@@ -19,13 +19,18 @@ const userSchema = new Schema<IUser, UserModel>(
           },
           email: {
                type: String,
+               required: false,
+               // unique: true,
+               lowercase: true,
+          },
+          contact: {
+               type: String,
                required: true,
                unique: true,
-               lowercase: true,
           },
           password: {
                type: String,
-               required: function() {
+               required: function () {
                     // Password is only required for non-OAuth users
                     return !this.oauthProvider;
                },
@@ -43,7 +48,7 @@ const userSchema = new Schema<IUser, UserModel>(
           },
           verified: {
                type: Boolean,
-               default: false,
+               default: true,
           },
           isDeleted: {
                type: Boolean,
@@ -83,6 +88,16 @@ const userSchema = new Schema<IUser, UserModel>(
                },
                select: false,
           },
+          helperUserId: {
+               type: Types.ObjectId,
+               ref: 'User',
+               default: null,
+          },
+          subscribedPackage: {
+               type: Types.ObjectId,
+               ref: 'Package',
+               default: null,
+          },
      },
      { timestamps: true },
 );
@@ -97,7 +112,7 @@ userSchema.statics.isExistUserById = async (id: string) => {
 userSchema.statics.isExistUserByEmail = async (email: string) => {
      return await User.findOne({ email });
 };
-userSchema.statics.isExistUserByPhone = async (contact: string) => {
+userSchema.statics.isExistUserByContact = async (contact: string) => {
      return await User.findOne({ contact });
 };
 // Password Matching

@@ -8,7 +8,7 @@ const sendSMS = async (to: string, message: string) => {
      try {
           await client.messages.create({
                body: message,
-               from: config.twilio.phoneNumber,
+               from: config.twilio.contactNumber,
                to: to,
           });
           return {

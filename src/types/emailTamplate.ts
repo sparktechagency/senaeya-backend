@@ -15,7 +15,7 @@ export interface IResetPasswordByEmail {
 export interface IHelpContact {
      name: string;
      email: string;
-     phone?: string;
+     contact?: string;
      read: boolean;
      message: string;
 }

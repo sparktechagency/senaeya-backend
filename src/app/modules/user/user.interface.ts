@@ -1,9 +1,11 @@
 import { Model } from 'mongoose';
 import { USER_ROLES } from '../../../enums/user';
+import { Types } from 'mongoose';
 export type IUser = {
      name: string;
      role: USER_ROLES;
-     email: string;
+     email?: string;
+     contact: string;
      password?: string;
      image?: string;
      isDeleted: boolean;
@@ -18,11 +20,13 @@ export type IUser = {
           oneTimeCode: number;
           expireAt: Date;
      };
+     helperUserId?: Types.ObjectId | null;
+     subscribedPackage?: Types.ObjectId | null;
 };
 
 export type UserModel = {
      isExistUserById(id: string): any;
      isExistUserByEmail(email: string): any;
-     isExistUserByPhone(contact: string): any;
+     isExistUserByContact(contact: string): any;
      isMatchPassword(password: string, hashPassword: string): boolean;
 } & Model<IUser>;

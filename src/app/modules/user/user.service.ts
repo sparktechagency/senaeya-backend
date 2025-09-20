@@ -2,46 +2,62 @@ import { StatusCodes } from 'http-status-codes';
 import { JwtPayload } from 'jsonwebtoken';
 import { USER_ROLES } from '../../../enums/user';
 import { emailHelper } from '../../../helpers/emailHelper';
+import { whatsAppHelper } from '../../../helpers/whatsAppHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
+import { whatsAppTemplate } from '../../../shared/whatsAppTemplate';
 import unlinkFile from '../../../shared/unlinkFile';
 import { IUser } from './user.interface';
 import { User } from './user.model';
 import AppError from '../../../errors/AppError';
 import generateOTP from '../../../utils/generateOTP';
+import { AuthService } from '../auth/auth.service';
+import mongoose from 'mongoose';
 // create user
-const createUserToDB = async (payload: IUser): Promise<IUser> => {
+const createUserToDB = async (payload: IUser & { helperUserId: { contact: string; password: string } }) => {
      //set role
-     const user = await User.isExistUserByEmail(payload.email);
+     const user = await User.isExistUserByContact(payload.contact);
      if (user) {
-          throw new AppError(StatusCodes.CONFLICT, 'Email already exists');
+          throw new AppError(StatusCodes.CONFLICT, 'Contact already exists');
      }
-     payload.role = USER_ROLES.WORKSHOP_OWNER;
-     const createUser = await User.create(payload);
-     if (!createUser) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
+     if (payload.helperUserId) {
+          const isHelperUserExist = await User.isExistUserByContact(payload.helperUserId?.contact);
+          if (isHelperUserExist) {
+               throw new AppError(StatusCodes.CONFLICT, 'Helper contact already exists');
+          }
      }
+     let helperUser = null;
+     // use mongoose transaction
+     const session = await mongoose.startSession();
+     session.startTransaction();
 
-     //send email
-     const otp = generateOTP(4);
-     const values = {
-          name: createUser.name,
-          otp: otp,
-          email: createUser.email!,
-     };
-     const createAccountTemplate = emailTemplate.createAccount(values);
-     emailHelper.sendEmail(createAccountTemplate);
+     try {
+          if (payload.helperUserId) {
+               [helperUser] = await User.create([{ ...payload.helperUserId, role: USER_ROLES.WORKSHOP_MEMBER }], { session });
+               if (!helperUser) {
+                    throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create helper user');
+               }
+          }
+          payload.role = USER_ROLES.WORKSHOP_OWNER;
+          const [createUser] = await User.create([{ ...payload, helperUserId: helperUser ? helperUser._id : null }], { session });
+          if (!createUser) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
+          }
+          // Commit the transaction
+          await session.commitTransaction();
+          session.endSession();
 
-     //save to DB
-     const authentication = {
-          oneTimeCode: otp,
-          expireAt: new Date(Date.now() + 3 * 60000),
-     };
-     await User.findOneAndUpdate({ _id: createUser._id }, { $set: { authentication } });
+          // login also
+          const result = await AuthService.loginUserFromDB({ contact: createUser.contact!, password: payload.password! });
 
-     return createUser;
+          return result;
+     } catch (error) {
+          // Abort the transaction on error
+          await session.abortTransaction();
+          session.endSession();
+
+          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'User not created.');
+     }
 };
-
-
 
 // create Admin
 const createAdminToDB = async (payload: Partial<IUser>): Promise<IUser> => {
@@ -67,10 +83,7 @@ const createAdminToDB = async (payload: Partial<IUser>): Promise<IUser> => {
           oneTimeCode: otp,
           expireAt: new Date(Date.now() + 3 * 60000),
      };
-     await User.findOneAndUpdate(
-          { _id: createAdmin._id },
-          { $set: { authentication } }
-     );
+     await User.findOneAndUpdate({ _id: createAdmin._id }, { $set: { authentication } });
 
      return createAdmin;
 };
@@ -157,15 +170,15 @@ const findAllUsers = async (page: number = 1, limit: number = 10) => {
           .skip(skip)
           .limit(limit)
           .select('-password');
-     
+
      const total = await User.countDocuments({ isDeleted: { $ne: true } });
-     
+
      return {
           users,
           total,
           page,
           limit,
-          totalPages: Math.ceil(total / limit)
+          totalPages: Math.ceil(total / limit),
      };
 };
 
@@ -176,37 +189,37 @@ const findUsersByRole = async (role: USER_ROLES, page: number = 1, limit: number
           .skip(skip)
           .limit(limit)
           .select('-password');
-     
+
      const total = await User.countDocuments({ role, isDeleted: { $ne: true } });
-     
+
      return {
           users,
           total,
           page,
           limit,
-          totalPages: Math.ceil(total / limit)
+          totalPages: Math.ceil(total / limit),
      };
 };
 
 // Find OAuth users
 const findOAuthUsers = async (provider?: 'google' | 'facebook') => {
-     const query = { 
+     const query = {
           oauthProvider: { $exists: true, $ne: null },
-          isDeleted: { $ne: true }
+          isDeleted: { $ne: true },
      };
-     
+
      if (provider) {
           (query as any).oauthProvider = provider;
      }
-     
+
      return await User.find(query).select('-password');
 };
 
 // Find local users (non-OAuth)
 const findLocalUsers = async () => {
-     return await User.find({ 
+     return await User.find({
           oauthProvider: { $exists: false },
-          isDeleted: { $ne: true }
+          isDeleted: { $ne: true },
      }).select('-password');
 };
 
@@ -214,32 +227,26 @@ const findLocalUsers = async () => {
 const searchUsers = async (searchTerm: string, page: number = 1, limit: number = 10) => {
      const skip = (page - 1) * limit;
      const regex = new RegExp(searchTerm, 'i');
-     
+
      const users = await User.find({
-          $or: [
-               { name: regex },
-               { email: regex }
-          ],
-          isDeleted: { $ne: true }
+          $or: [{ name: regex }, { email: regex }],
+          isDeleted: { $ne: true },
      })
-     .skip(skip)
-     .limit(limit)
-     .select('-password');
-     
+          .skip(skip)
+          .limit(limit)
+          .select('-password');
+
      const total = await User.countDocuments({
-          $or: [
-               { name: regex },
-               { email: regex }
-          ],
-          isDeleted: { $ne: true }
+          $or: [{ name: regex }, { email: regex }],
+          isDeleted: { $ne: true },
      });
-     
+
      return {
           users,
           total,
           page,
           limit,
-          totalPages: Math.ceil(total / limit)
+          totalPages: Math.ceil(total / limit),
      };
 };
 
@@ -248,20 +255,20 @@ const getUserStats = async () => {
      const totalUsers = await User.countDocuments({ isDeleted: { $ne: true } });
      const googleUsers = await User.countDocuments({ googleId: { $exists: true, $ne: null } });
      const facebookUsers = await User.countDocuments({ facebookId: { $exists: true, $ne: null } });
-     const localUsers = await User.countDocuments({ 
+     const localUsers = await User.countDocuments({
           oauthProvider: { $exists: false },
-          isDeleted: { $ne: true }
+          isDeleted: { $ne: true },
      });
      const verifiedUsers = await User.countDocuments({ verified: true, isDeleted: { $ne: true } });
      const blockedUsers = await User.countDocuments({ status: 'blocked', isDeleted: { $ne: true } });
-     
+
      return {
           totalUsers,
           googleUsers,
           facebookUsers,
           localUsers,
           verifiedUsers,
-          blockedUsers
+          blockedUsers,
      };
 };
 
@@ -271,18 +278,18 @@ const linkOAuthAccount = async (userId: string, provider: 'google' | 'facebook',
      if (!user) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
      }
-     
+
      const updateData: any = {
           oauthProvider: provider,
-          verified: true
+          verified: true,
      };
-     
+
      if (provider === 'google') {
           updateData.googleId = providerId;
      } else if (provider === 'facebook') {
           updateData.facebookId = providerId;
      }
-     
+
      return await User.findByIdAndUpdate(userId, updateData, { new: true });
 };
 
@@ -292,9 +299,9 @@ const unlinkOAuthAccount = async (userId: string, provider: 'google' | 'facebook
      if (!user) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
      }
-     
+
      const updateData: any = {};
-     
+
      if (provider === 'google') {
           updateData.googleId = null;
           updateData.oauthProvider = user.facebookId ? 'facebook' : null;
@@ -302,7 +309,7 @@ const unlinkOAuthAccount = async (userId: string, provider: 'google' | 'facebook
           updateData.facebookId = null;
           updateData.oauthProvider = user.googleId ? 'google' : null;
      }
-     
+
      return await User.findByIdAndUpdate(userId, updateData, { new: true });
 };
 

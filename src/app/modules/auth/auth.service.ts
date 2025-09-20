@@ -13,12 +13,14 @@ import generateOTP from '../../../utils/generateOTP';
 import cryptoToken from '../../../utils/cryptoToken';
 import { verifyToken } from '../../../utils/verifyToken';
 import { createToken } from '../../../utils/createToken';
+import { whatsAppTemplate } from '../../../shared/whatsAppTemplate';
+import { whatsAppHelper } from '../../../helpers/whatsAppHelper';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
-     const { email, password } = payload;
-     
-     const isExistUser = await User.findOne({ email }).select('+password');
+     const { contact, password } = payload;
+
+     const isExistUser = await User.findOne({ contact }).select('+password');
      if (!isExistUser) {
           throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
      }
@@ -32,20 +34,20 @@ const loginUserFromDB = async (payload: ILoginData) => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Password is required!');
      }
 
-     //check verified and status
-     if (!isExistUser.verified) {
-          //send mail
-          const otp = generateOTP(6);
-          const value = { otp, email: isExistUser.email };
-          const forgetPassword = emailTemplate.resetPassword(value);
-          emailHelper.sendEmail(forgetPassword);
+     // //check verified and status
+     // if (!isExistUser.verified) {
+     //      //send mail
+     //      const otp = generateOTP(6);
+     //      const value = { otp, email: isExistUser.email };
+     //      const forgetPassword = emailTemplate.resetPassword(value);
+     //      emailHelper.sendEmail(forgetPassword);
 
-          //save to DB
-          const authentication = { oneTimeCode: otp, expireAt: new Date(Date.now() + 3 * 60000) };
-          await User.findOneAndUpdate({ email }, { $set: { authentication } });
+     //      //save to DB
+     //      const authentication = { oneTimeCode: otp, expireAt: new Date(Date.now() + 3 * 60000) };
+     //      await User.findOneAndUpdate({ email: contact }, { $set: { authentication } });
 
-          throw new AppError(StatusCodes.CONFLICT, 'Please verify your account, then try to login again');
-     }
+     //      throw new AppError(StatusCodes.CONFLICT, 'Please verify your account, then try to login again');
+     // }
 
      //check user status
      if (isExistUser?.status === 'blocked') {
@@ -57,7 +59,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Password is incorrect!');
      }
 
-     const jwtData = { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email };
+     const jwtData = { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email || '', contact: isExistUser.contact, subscribedPackage: isExistUser.subscribedPackage || null };
      //create token
      const accessToken = jwtHelper.createToken(jwtData, config.jwt.jwt_secret as Secret, config.jwt.jwt_expire_in as string);
      const refreshToken = jwtHelper.createToken(jwtData, config.jwt.jwt_refresh_secret as string, config.jwt.jwt_refresh_expire_in as string);
@@ -66,21 +68,20 @@ const loginUserFromDB = async (payload: ILoginData) => {
 };
 
 //forget password
-const forgetPasswordToDB = async (email: string) => {
-     const isExistUser = await User.isExistUserByEmail(email);
+const forgetPasswordToDB = async (contact: string) => {
+     const isExistUser = await User.findOne({ contact }).select('+password');
      if (!isExistUser) {
           throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
      }
 
-     //send mail
-     const otp = generateOTP(4);
-     const value = { otp, email: isExistUser.email };
-     const forgetPassword = emailTemplate.resetPassword(value);
-     emailHelper.sendEmail(forgetPassword);
+     const newPassword = generateOTP(8).toString();
+     isExistUser.password = newPassword;
+     await isExistUser.save();
 
-     //save to DB
-     const authentication = { oneTimeCode: otp, expireAt: new Date(Date.now() + 3 * 60000) };
-     await User.findOneAndUpdate({ email }, { $set: { authentication } });
+     //send message
+     const values = { name: isExistUser.name, password: newPassword, contact: isExistUser.contact };
+     const message = whatsAppTemplate.forgetPassword(values);
+     await whatsAppHelper.sendWhatsApp({ to: contact, body: message });
 };
 // resend otp
 const resendOtpFromDb = async (email: string) => {
@@ -155,7 +156,11 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
      if (!isExistUser.verified) {
           await User.findOneAndUpdate({ _id: isExistUser._id }, { verified: true, authentication: { oneTimeCode: null, expireAt: null } });
           //create token
-          accessToken = jwtHelper.createToken({ id: isExistUser._id, role: isExistUser.role, email: isExistUser.email }, config.jwt.jwt_secret as Secret, config.jwt.jwt_expire_in as string);
+          accessToken = jwtHelper.createToken(
+               { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email || '', contact: isExistUser.contact || '', subscribedPackage: isExistUser.subscribedPackage || null },
+               config.jwt.jwt_secret as Secret,
+               config.jwt.jwt_expire_in as string,
+          );
           message = 'Email verify successfully';
           user = await User.findById(isExistUser._id);
      } else {
@@ -286,7 +291,13 @@ const refreshToken = async (token: string) => {
           throw new AppError(StatusCodes.FORBIDDEN, 'User account is deleted');
      }
 
-     const jwtPayload = { id: activeUser?._id?.toString() as string, role: activeUser?.role, email: activeUser.email };
+     const jwtPayload = {
+          id: activeUser?._id?.toString() as string,
+          role: activeUser?.role,
+          email: activeUser.email || '',
+          contact: activeUser.contact || '',
+          subscribedPackage: activeUser.subscribedPackage || null,
+     };
 
      const accessToken = jwtHelper.createToken(jwtPayload, config.jwt.jwt_secret as Secret, config.jwt.jwt_expire_in as string);
 

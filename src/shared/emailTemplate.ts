@@ -107,7 +107,7 @@ const contactFormTemplate = (values: IHelpContact) => {
             </div>
             <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">We will get back to you as soon as possible. Below are the details you provided:</p>
             <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 10px;">Email: ${values.email}</p>
-            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 10px;">Phone: ${values.phone}</p>
+            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 10px;">Contact: ${values.contact}</p>
             <p style="color: #b9b4b4; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">If you need immediate assistance, please feel free to contact us directly at our support number.</p>
         </div>
     </div>

@@ -38,7 +38,7 @@ export default {
      twilio: {
           accountSid: process.env.TWILIO_ACCOUNT_SID || '',
           authToken: process.env.TWILIO_AUTH_TOKEN || '',
-          phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
+          contactNumber: process.env.TWILIO_CONTACT_NUMBER || '',
      },
      stripe: {
           stripe_secret_key: process.env.STRIPE_SECRET_KYE,
@@ -50,5 +50,9 @@ export default {
      super_admin: {
           email: process.env.SUPER_ADMIN_EMAIL,
           password: process.env.SUPER_ADMIN_PASSWORD,
+     },
+     whatsapp: {
+          token: process.env.WHATSAPP_TOKEN,
+          instanceId: process.env.WHATSAPP_INSTANCE_ID,
      },
 };

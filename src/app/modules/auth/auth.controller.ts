@@ -26,10 +26,10 @@ const loginUser = catchAsync(async (req, res) => {
 });
 
 const forgetPassword = catchAsync(async (req, res) => {
-     const email = req.body.email;
-     const result = await AuthService.forgetPasswordToDB(email);
+     const contact = req.body.contact;
+     const result = await AuthService.forgetPasswordToDB(contact);
 
-     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'Please check your email. We have sent you a one-time passcode (OTP).', data: result });
+     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'Please check your WhatsApp. We have sent your password.', data: result });
 });
 const forgetPasswordByUrl = catchAsync(async (req, res) => {
      const email = req.body.email;
@@ -105,7 +105,9 @@ const googleAuthCallback = catchAsync(async (req, res) => {
           const jwtData = { 
                id: user._id, 
                role: user.role, 
-               email: user.email 
+               email: user.email || '',
+               contact: user.contact || '',
+               subscribedPackage: user.subscribedPackage || null
           };
           
           const accessToken = jwtHelper.createToken(
@@ -154,7 +156,9 @@ const facebookAuthCallback = catchAsync(async (req, res) => {
           const jwtData = { 
                id: user._id, 
                role: user.role, 
-               email: user.email 
+               email: user.email || '',
+               contact: user.contact || '',
+               subscribedPackage: user.subscribedPackage || null
           };
           
           const accessToken = jwtHelper.createToken(
