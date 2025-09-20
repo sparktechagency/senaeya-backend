@@ -1,115 +1,95 @@
-import httpStatus from 'http-status-codes';
-import { MessageService } from './message.service';
-import { ChatService } from '../chat/chat.service';
-import { FilesObject } from '../../interface/common.interface';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
-import { updateFileName } from '../../../utils/fileHelper';
 import sendResponse from '../../../shared/sendResponse';
+import { messageService } from './message.service';
 
-const sendMessage = catchAsync(async (req, res) => {
-  const { files } = req as Request & { files: FilesObject };
-  const chatId: any = req.params.chatId;
-  const { id }: any = req.user;
+const createMessage = catchAsync(async (req: Request, res: Response) => {
+     const result = await messageService.createMessage(req.body);
 
-  const images = files.images?.map((photo) =>
-    updateFileName('images', photo.filename),
-  );
-  req.body.images = images;
-  req.body.sender = id;
-  req.body.chatId = chatId;
-
-  const message = await MessageService.sendMessageToDB(req.body);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Send Message Successfully',
-    data: message,
-  });
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Message created successfully',
+          data: result,
+     });
 });
 
-const getMessages = catchAsync(async (req, res) => {
-  const { chatId } = req.params;
-  const { id }: any = req.user;
+const getAllMessages = catchAsync(async (req: Request, res: Response) => {
+     const result = await messageService.getAllMessages(req.query);
 
-  // Mark messages as read when user opens the chat
-  await ChatService.markChatAsRead(id, chatId);
-
-  const result = await MessageService.getMessagesFromDB(
-    chatId,
-    id,
-    req.query,
-  );
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Messages retrieved successfully',
-    data: {
-      messages: result.messages,
-      pinnedMessages: result.pinnedMessages,
-    },
-    meta: {
-      limit: result.pagination.limit,
-      page: result.pagination.page,
-      total: result.pagination.total,
-      totalPage: result.pagination.totalPage,
-    },
-  });
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Messages retrieved successfully',
+          data: result,
+     });
 });
 
-const addReaction = catchAsync(async (req, res) => {
-  const { id }: any = req.user;
-  const { messageId } = req.params;
-  const { reactionType } = req.body;
-  const messages = await MessageService.addReactionToMessage(
-    id,
-    messageId,
-    reactionType,
-  );
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Reaction Added Successfully',
-    data: messages,
-  });
+const getAllUnpaginatedMessages = catchAsync(async (req: Request, res: Response) => {
+     const result = await messageService.getAllUnpaginatedMessages();
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Messages retrieved successfully',
+          data: result,
+     });
 });
 
-const deleteMessage = catchAsync(async (req, res) => {
-  const { id }: any = req.user;
-  const { messageId } = req.params;
-  const messages = await MessageService.deleteMessage(id, messageId);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Message Deleted Successfully',
-    data: messages,
-  });
+const updateMessage = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await messageService.updateMessage(id, req.body);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Message updated successfully',
+          data: result || undefined,
+     });
 });
 
-// New controller: Pin/Unpin message
-const pinUnpinMessage = catchAsync(async (req, res) => {
-  const { id }: any = req.user;
-  const { messageId } = req.params;
-  const { action } = req.body; // 'pin' or 'unpin'
+const deleteMessage = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await messageService.deleteMessage(id);
 
-  const result = await MessageService.pinUnpinMessage(
-    id,
-    messageId,
-    action,
-  );
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: `Message ${action}ned successfully`,
-    data: result,
-  });
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Message deleted successfully',
+          data: result || undefined,
+     });
 });
 
-export const MessageController = {
-  sendMessage,
-  getMessages,
-  addReaction,
-  deleteMessage,
-  pinUnpinMessage,
+const hardDeleteMessage = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await messageService.hardDeleteMessage(id);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Message deleted successfully',
+          data: result || undefined,
+     });
+});
+
+const getMessageById = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await messageService.getMessageById(id);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Message retrieved successfully',
+          data: result || undefined,
+     });
+});  
+
+export const messageController = {
+     createMessage,
+     getAllMessages,
+     getAllUnpaginatedMessages,
+     updateMessage,
+     deleteMessage,
+     hardDeleteMessage,
+     getMessageById
 };

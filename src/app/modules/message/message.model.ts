@@ -1,73 +1,27 @@
 import { Schema, model } from 'mongoose';
-import { IMessage, MessageModel } from './message.interface';
+import { Imessage } from './message.interface';
 
-const messageSchema = new Schema<IMessage, MessageModel>(
-  {
-    chatId: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: 'Chat',
-    },
-    sender: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: 'User',
-    },
-    text: {
-      type: String,
-    },
-    images: {
-      type: [String],
-      default: [],
-    },
-    read: {
-      type: Boolean,
-      default: false,
-    },
-    type: {
-      type: String,
-      enum: ['text', 'image', 'doc', 'both'],
-      default: 'text',
-    },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-      required: true,
-    },
-    // New pinned message fields
-    isPinned: {
-      type: Boolean,
-      default: false,
-    },
-    pinnedBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-    },
-    pinnedAt: {
-      type: Date,
-    },
-    reactions: [
-      {
-        userId: {
-          type: Schema.Types.ObjectId,
-          required: true,
-          ref: 'User',
-        },
-        reactionType: {
-          type: String,
-          enum: ['like', 'love', 'thumbs_up', 'laugh', 'angry', 'sad'],
-          required: true,
-        },
-        timestamp: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-  },
-  {
-    timestamps: true,
-  },
-);
+const MessageSchema = new Schema<Imessage>({
+     message: { type: String, required: true },
+     name: { type: String,required: true },
+     contact: { type: String,required: true },
+     isDeleted: { type: Boolean, default: false },
+     deletedAt: { type: Date },
+}, { timestamps: true });
 
-export const Message = model<IMessage, MessageModel>('Message', messageSchema);
+MessageSchema.pre('find', function (next) {
+     this.find({ isDeleted: false });
+     next();
+});
+
+MessageSchema.pre('findOne', function (next) {
+     this.findOne({ isDeleted: false });
+     next();
+});
+
+MessageSchema.pre('aggregate', function (next) {
+     this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+     next();
+});       
+
+export const Message = model<Imessage>('Message', MessageSchema);

@@ -1,64 +1,28 @@
 import express from 'express';
-import { MessageController } from './message.controller';
+import { messageController } from './message.controller';
 import auth from '../../middleware/auth';
-import { USER_ROLES } from '../../../enums/user';
 import fileUploadHandler from '../../middleware/fileUploadHandler';
+import parseFileData from '../../middleware/parseFileData';
 import { FOLDER_NAMES } from '../../../enums/files';
-import parseMultipleFileData from '../../middleware/parseMultipleFiledata';
+import validateRequest from '../../middleware/validateRequest';
+import { messageValidation } from './message.validation';
+import { USER_ROLES } from '../../../enums/user';
+
 const router = express.Router();
 
-// Existing routes
-router.post(
-  '/send-message/:chatId',
-  auth(
-    USER_ROLES.WORKSHOP_OWNER,
-    USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.ADMIN,
-  ),
-  fileUploadHandler(),
-  parseMultipleFileData(FOLDER_NAMES.IMAGES),
-  MessageController.sendMessage,
-);
+router.post('/', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateRequest(messageValidation.createMessageZodSchema), messageController.createMessage);
 
-router.get(
-  '/:chatId',
-  auth(
-    USER_ROLES.WORKSHOP_OWNER,
-    USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.ADMIN,
-  ),
-  MessageController.getMessages,
-);
+router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), messageController.getAllMessages);
 
-router.post(
-  '/react/:messageId',
-  auth(
-    USER_ROLES.WORKSHOP_OWNER,
-    USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.ADMIN,
-  ),
-  MessageController.addReaction,
-);
+router.get('/unpaginated', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), messageController.getAllUnpaginatedMessages);
 
-router.delete(
-  '/delete/:messageId',
-  auth(
-    USER_ROLES.WORKSHOP_OWNER,
-    USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.ADMIN,
-  ),
-  MessageController.deleteMessage,
-);
+router.delete('/hard-delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), messageController.hardDeleteMessage);
 
-// New route for pin/unpin message
-router.patch(
-  '/pin-unpin/:messageId',
-  auth(
-    USER_ROLES.WORKSHOP_OWNER,
-    USER_ROLES.SUPER_ADMIN,
-    USER_ROLES.ADMIN,
-  ),
-  MessageController.pinUnpinMessage,
-);
+// router.patch('/:id', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER),
+//     validateRequest(messageValidation.updateMessageZodSchema), messageController.updateMessage);
+
+router.delete('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), messageController.deleteMessage);
+
+router.get('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), messageController.getMessageById);
 
 export const messageRoutes = router;
