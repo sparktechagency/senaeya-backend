@@ -34,21 +34,6 @@ const loginUserFromDB = async (payload: ILoginData) => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Password is required!');
      }
 
-     // //check verified and status
-     // if (!isExistUser.verified) {
-     //      //send mail
-     //      const otp = generateOTP(6);
-     //      const value = { otp, email: isExistUser.email };
-     //      const forgetPassword = emailTemplate.resetPassword(value);
-     //      emailHelper.sendEmail(forgetPassword);
-
-     //      //save to DB
-     //      const authentication = { oneTimeCode: otp, expireAt: new Date(Date.now() + 3 * 60000) };
-     //      await User.findOneAndUpdate({ email: contact }, { $set: { authentication } });
-
-     //      throw new AppError(StatusCodes.CONFLICT, 'Please verify your account, then try to login again');
-     // }
-
      //check user status
      if (isExistUser?.status === 'blocked') {
           throw new AppError(StatusCodes.BAD_REQUEST, 'You do not have permission to access this content. It looks like your account has been blocked.');
@@ -57,6 +42,27 @@ const loginUserFromDB = async (payload: ILoginData) => {
      //check match password
      if (!(await User.isMatchPassword(password, isExistUser.password || ''))) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Password is incorrect!');
+     }
+
+     const jwtData = { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email || '', contact: isExistUser.contact, subscribedPackage: isExistUser.subscribedPackage || null };
+     //create token
+     const accessToken = jwtHelper.createToken(jwtData, config.jwt.jwt_secret as Secret, config.jwt.jwt_expire_in as string);
+     const refreshToken = jwtHelper.createToken(jwtData, config.jwt.jwt_refresh_secret as string, config.jwt.jwt_refresh_expire_in as string);
+
+     return { accessToken, refreshToken };
+};
+
+const loginUserWithFingerPrint = async (payload: ILoginData) => {
+     const { fingerPrintId } = payload;
+
+     const isExistUser = await User.findOne({ fingerPrintId });
+     if (!isExistUser) {
+          throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+     }
+
+     //check user status
+     if (isExistUser?.status === 'blocked') {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'You do not have permission to access this content. It looks like your account has been blocked.');
      }
 
      const jwtData = { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email || '', contact: isExistUser.contact, subscribedPackage: isExistUser.subscribedPackage || null };
@@ -303,4 +309,15 @@ const refreshToken = async (token: string) => {
 
      return { accessToken };
 };
-export const AuthService = { verifyEmailToDB, loginUserFromDB, forgetPasswordToDB, resetPasswordToDB, changePasswordToDB, forgetPasswordByUrlToDB, resetPasswordByUrl, resendOtpFromDb, refreshToken };
+export const AuthService = {
+     verifyEmailToDB,
+     loginUserFromDB,
+     loginUserWithFingerPrint,
+     forgetPasswordToDB,
+     resetPasswordToDB,
+     changePasswordToDB,
+     forgetPasswordByUrlToDB,
+     resetPasswordByUrl,
+     resendOtpFromDb,
+     refreshToken,
+};

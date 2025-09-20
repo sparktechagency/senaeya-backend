@@ -25,6 +25,17 @@ const loginUser = catchAsync(async (req, res) => {
      sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'User logged in successfully.', data: { accessToken: result.accessToken, refreshToken: result.refreshToken } });
 });
 
+const loginUserWithFingerPrint = catchAsync(async (req, res) => {
+     const { ...loginData } = req.body;
+     const result = await AuthService.loginUserWithFingerPrint(loginData);
+     const cookieOptions: any = { secure: false, httpOnly: true, maxAge: 31536000000 };
+
+     if (config.node_env === 'production') {
+          cookieOptions.sameSite = 'none';
+     }
+     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'User logged in successfully.', data: { accessToken: result.accessToken, refreshToken: result.refreshToken } });
+});
+
 const forgetPassword = catchAsync(async (req, res) => {
      const contact = req.body.contact;
      const result = await AuthService.forgetPasswordToDB(contact);
@@ -184,6 +195,7 @@ const facebookAuthCallback = catchAsync(async (req, res) => {
 export const AuthController = { 
      verifyEmail, 
      loginUser, 
+     loginUserWithFingerPrint, 
      forgetPassword, 
      resetPassword, 
      changePassword, 

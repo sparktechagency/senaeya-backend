@@ -31,6 +31,7 @@ const updateUserZodSchema = z.object({
           email: z.string().email('Invalid email address').optional(),
           password: z.string().optional(),
           image: z.string().optional(),
+          fingerPrintId: z.string().optional(),
      }),
 });
 

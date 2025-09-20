@@ -22,6 +22,7 @@ export type IUser = {
      };
      helperUserId?: Types.ObjectId | null;
      subscribedPackage?: Types.ObjectId | null;
+     fingerPrintId?: string;
 };
 
 export type UserModel = {

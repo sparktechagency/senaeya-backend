@@ -4,8 +4,9 @@ export type IVerifyEmail = {
 };
 
 export type ILoginData = {
-     contact: string;
-     password: string;
+     contact?: string;
+     password?: string;
+     fingerPrintId?: string;
 };
 
 export type IAuthResetPassword = {

@@ -98,6 +98,9 @@ const userSchema = new Schema<IUser, UserModel>(
                ref: 'Package',
                default: null,
           },
+          fingerPrintId: {
+               type: String,
+          },
      },
      { timestamps: true },
 );

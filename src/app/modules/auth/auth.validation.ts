@@ -8,10 +8,15 @@ const createVerifyEmailZodSchema = z.object({
 });
 
 const createLoginZodSchema = z.object({
-     body: z.object({
-          contact: z.string({ required_error: 'Contact is required' }),
-          password: z.string({ required_error: 'Password is required' }),
-     }),
+     body: z.union([
+          z.object({
+               contact: z.string({ required_error: 'Contact is required' }),
+               password: z.string({ required_error: 'Password is required' }),
+          }),
+          z.object({
+               fingerPrintId: z.string({ required_error: 'Finger print id is required' }),
+          }),
+     ]),
 });
 
 const createForgetPasswordZodSchema = z.object({
