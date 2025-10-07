@@ -7,9 +7,13 @@ import { FOLDER_NAMES } from '../../../enums/files';
 import validateRequest from '../../middleware/validateRequest';
 import { clientValidation } from './client.validation';
 import { USER_ROLES } from '../../../enums/user';
+import { carRoutes } from '../car/car.route';
+import { invoiceRoutes } from '../invoice/invoice.route';
 
 const router = express.Router();
 
+router.use('/cars', carRoutes);
+router.use('/invoices', invoiceRoutes);
 router.post(
      '/',
      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),

@@ -1,7 +1,11 @@
+import { Types } from 'mongoose';
+
 export interface Iinvoice {
+     client: Types.ObjectId;
+     providerWorkShopId: Types.ObjectId;
      image: string;
      title: string;
-     description:string;
+     description: string;
      createdAt: Date;
      updatedAt: Date;
      isDeleted: boolean;

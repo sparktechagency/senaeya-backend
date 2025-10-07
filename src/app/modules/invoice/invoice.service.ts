@@ -18,7 +18,7 @@ const createInvoice = async (payload: Iinvoice): Promise<Iinvoice> => {
 
 const getAllInvoices = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number; }; result: Iinvoice[]; }> => {
      const queryBuilder = new QueryBuilder(Invoice.find(), query);
-     const result = await queryBuilder.filter().sort().paginate().fields().modelQuery;
+     const result = await queryBuilder.filter().sort().paginate().fields().search(['description']).modelQuery;
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };

@@ -182,7 +182,6 @@ const createClient = async (payload: any) => {
 };
 
 const getAllClients = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: IClient[] }> => {
-     console.log("🚀 ~ getAllClients ~ query:", query)
      const queryBuilder = new QueryBuilder(Client.find(), query);
      const result = await queryBuilder.filter().sort().paginate().fields().search(['contact']).modelQuery;
      const meta = await queryBuilder.countTotal();

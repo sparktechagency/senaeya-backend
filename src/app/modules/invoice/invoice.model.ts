@@ -2,6 +2,8 @@ import { Schema, model } from 'mongoose';
 import { Iinvoice } from './invoice.interface';
 
 const InvoiceSchema = new Schema<Iinvoice>({
+     client: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+     providerWorkShopId: { type: Schema.Types.ObjectId, ref: 'WorkShop', required: true },
      image: { type: String, required: true },
      title: { type: String,required: true },
      description: { type: String,required: true },
