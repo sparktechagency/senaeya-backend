@@ -1,16 +1,13 @@
-import { Types } from "mongoose";
-
-export interface IcarBrand {
+export interface IcarBrandCountries {
      image: string;
      title: string;
-     country:Types.ObjectId;
-     description?:string;
+     description:string;
      createdAt: Date;
      updatedAt: Date;
      isDeleted: boolean;
      deletedAt?: Date;
 }
 
-export type IcarBrandFilters = {
+export type IcarBrandCountriesFilters = {
      searchTerm?: string;
 };

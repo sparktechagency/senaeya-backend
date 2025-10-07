@@ -8,6 +8,9 @@ import { carBrandRoutes } from '../app/modules/carBrand/carBrand.route';
 import { imageRoutes } from '../app/modules/image/image.route';
 import { clientRoutes } from '../app/modules/client/client.route';
 import { carRoutes } from '../app/modules/car/car.route';
+import { worksCategoriesRoutes } from '../app/modules/worksCategories/worksCategories.route';
+import { carBrandCountriesRoutes } from '../app/modules/carBrandCountries/carBrandCountries.route';
+import { workRoutes } from '../app/modules/work/work.route';
 const router = express.Router();
 const routes = [
      {
@@ -45,6 +48,18 @@ const routes = [
      {
           path: '/cars',
           route: carRoutes,
+     },
+     {
+          path: '/works-categories',
+          route: worksCategoriesRoutes,
+     },
+     {
+          path: '/car-brand-countries',
+          route: carBrandCountriesRoutes,
+     },
+     {
+          path: '/works',
+          route: workRoutes,
      },
 ];
 
