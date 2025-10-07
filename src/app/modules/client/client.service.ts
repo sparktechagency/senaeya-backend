@@ -65,6 +65,7 @@ const createClient = async (payload: any) => {
                     clientType: payload.clientType,
                     clientId: payload.workShopIdAsClient,
                     document: payload.document,
+                    providerWorkShopId: payload.providerWorkShopId,
                });
                if (!isExistClient) {
                     if (payload.document) {
@@ -109,6 +110,7 @@ const createClient = async (payload: any) => {
                                    clientType: payload.clientType,
                                    clientId: isExistUser._id,
                                    document: payload.document,
+                                   providerWorkShopId: payload.providerWorkShopId,
                               },
                          ],
                          { session },

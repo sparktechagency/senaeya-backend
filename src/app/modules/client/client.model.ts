@@ -3,7 +3,7 @@ import { IClient } from './client.interface';
 import { CLIENT_TYPE } from './client.enum';
 
 const ClientSchema = new Schema<IClient>({
-     providerWorkShopId: { type: [Schema.Types.ObjectId], ref: 'WorkShop', required: true },
+     providerWorkShopId: { type: Schema.Types.ObjectId, ref: 'WorkShop', required: true },
      clientType: { type: String, enum: CLIENT_TYPE, required: true },
      clientId: { type: String, required: true },
      cars: { type: [Schema.Types.ObjectId], ref: 'Car', required: true, default: [] },
