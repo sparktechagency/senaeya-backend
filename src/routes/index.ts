@@ -7,7 +7,7 @@ import { workShopRoutes } from '../app/modules/workShop/workShop.route';
 import { carBrandRoutes } from '../app/modules/carBrand/carBrand.route';
 import { imageRoutes } from '../app/modules/image/image.route';
 import { clientRoutes } from '../app/modules/client/client.route';
-
+import { carRoutes } from '../app/modules/car/car.route';
 const router = express.Router();
 const routes = [
      {
@@ -41,6 +41,10 @@ const routes = [
      {
           path: '/clients',
           route: clientRoutes,
+     },
+     {
+          path: '/cars',
+          route: carRoutes,
      },
 ];
 

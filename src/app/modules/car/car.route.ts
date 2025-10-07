@@ -10,10 +10,7 @@ import { USER_ROLES } from '../../../enums/user';
 
 const router = express.Router();
 
-router.post('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-    fileUploadHandler(),
-    parseFileData(FOLDER_NAMES.IMAGE),
-    validateRequest(carValidation.createCarZodSchema), carController.createCar);
+router.post('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest(carValidation.createCarZodSchema), carController.createCar);
 
 router.get('/', carController.getAllCars);
 
@@ -21,9 +18,7 @@ router.get('/unpaginated', carController.getAllUnpaginatedCars);
 
 router.delete('/hard-delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), carController.hardDeleteCar);
 
-router.patch('/:id', fileUploadHandler(),
-    parseFileData(FOLDER_NAMES.IMAGE), auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-    validateRequest(carValidation.updateCarZodSchema), carController.updateCar);
+router.patch('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest(carValidation.updateCarZodSchema), carController.updateCar);
 
 router.delete('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), carController.deleteCar);
 

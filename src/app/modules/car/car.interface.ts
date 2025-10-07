@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { CLIENT_CAR_TYPE } from "../client/client.enum";
 
-export interface Icar {
+export interface ICar {
      brand: Types.ObjectId;
      model: string;
      year: string;
@@ -17,6 +17,7 @@ export interface Icar {
           numberArabic: string;
           alphabetsCombinations: string[];
      };
+     slugForSaudiCarPlateNumber: string | null;
      createdAt: Date;
      updatedAt: Date;
      isDeleted: boolean;
@@ -29,7 +30,7 @@ export type IcarFilters = {
 
 
 // Creation payload type (omit system-managed fields)
-export type IcarCreate = Omit<Icar, 'createdAt' | 'updatedAt' | 'isDeleted' | 'deletedAt'> & {
+export type IcarCreate = Omit<ICar, 'createdAt' | 'updatedAt' | 'isDeleted' | 'deletedAt'> & {
      brand: Types.ObjectId | string;
      client?: Types.ObjectId | string | null;
      carType?: CLIENT_CAR_TYPE;

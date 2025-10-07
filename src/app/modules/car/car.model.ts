@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose';
-import { Icar } from './car.interface';
+import { ICar } from './car.interface';
 import { CLIENT_CAR_TYPE } from '../client/client.enum';
-const CarSchema = new Schema<Icar>(
+const CarSchema = new Schema<ICar>(
      {
           brand: { type: Schema.Types.ObjectId, ref: 'CarBrand', required: true },
           model: { type: String, required: true },
@@ -10,17 +10,25 @@ const CarSchema = new Schema<Icar>(
           client: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
           image: { type: String, required: false },
           description: { type: String, required: false },
-          carType: { type: String, enum: CLIENT_CAR_TYPE, required: true},
-          plateNumberForInternational: { type: String, required: false, unique: true },
+          carType: { type: String, enum: CLIENT_CAR_TYPE, required: true },
+          plateNumberForInternational: { type: String, required: false, index: true },          
+          slugForSaudiCarPlateNumber: {
+               type: String,
+               required: function (this: any) {
+                    return this.carType === CLIENT_CAR_TYPE.SAUDI;
+               },
+               index: true,
+               default: null,
+          }, // null for international car
           plateNumberForSaudi: {
                type: {
-                    symbol: { type: String, required: false },
+                    symbol: { type: Schema.Types.ObjectId, ref: 'Image', required: false },
                     numberEnglish: { type: String, required: false },
                     numberArabic: { type: String, required: false },
                     alphabetsCombinations: { type: [String], required: false },
                },
                required: false,
-               unique: true,
+               index: true,
           },
           isDeleted: { type: Boolean, default: false },
           deletedAt: { type: Date },
@@ -43,4 +51,4 @@ CarSchema.pre('aggregate', function (next) {
      next();
 });
 
-export const Car = model<Icar>('Car', CarSchema);
+export const Car = model<ICar>('Car', CarSchema);

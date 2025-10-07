@@ -11,7 +11,6 @@ const createClientZodSchema = z.object({
                model: z.string().optional(),
                year: z.string().optional(),
                vin: z.string().optional(),
-               phone: z.string().optional(),
                name: z.string().optional(),
                contact: z.string().optional(),
                description: z.string().optional(),

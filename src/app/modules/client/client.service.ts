@@ -66,6 +66,7 @@ const createClient = async (payload: any) => {
                     clientId: payload.workShopIdAsClient,
                     document: payload.document,
                     providerWorkShopId: payload.providerWorkShopId,
+                    contact: payload.contact,
                });
                if (!isExistClient) {
                     if (payload.document) {
@@ -111,6 +112,7 @@ const createClient = async (payload: any) => {
                                    clientId: isExistUser._id,
                                    document: payload.document,
                                    providerWorkShopId: payload.providerWorkShopId,
+                                   contact: payload.contact,
                               },
                          ],
                          { session },
@@ -126,20 +128,34 @@ const createClient = async (payload: any) => {
                }
                let isExistCar = await Car.findOne({ vin: payload.vin });
                if (!isExistCar) {
-                    [isExistCar] = await Car.create(
-                         [
-                              {
-                                   brand: payload.brand,
-                                   model: payload.model,
-                                   year: payload.year,
-                                   vin: payload.vin,
-                                   client: isExistClient._id,
-                                   carType: payload.carType,
-                                   plateNumberForInternational: payload.plateNumberForInternational || null,
-                                   plateNumberForSaudi: payload.plateNumberForSaudi || null,
-                              },
-                         ],
-                         { session },
+                    // [isExistCar] = await Car.create(
+                    //      [
+                    //           {
+                    //                client: isExistClient._id,
+                    //                brand: payload.brand,
+                    //                model: payload.model,
+                    //                year: payload.year,
+                    //                vin: payload.vin,
+                    //                carType: payload.carType,
+                    //                plateNumberForInternational: payload.plateNumberForInternational || null,
+                    //                plateNumberForSaudi: payload.plateNumberForSaudi || null,
+                    //           },
+                    //      ],
+                    //      { session },
+                    // );
+                    isExistCar = await carService.createCarWithSession(
+                         {
+                              client: isExistClient._id,
+                              brand: payload.brand,
+                              model: payload.model,
+                              year: payload.year,
+                              vin: payload.vin,
+                              carType: payload.carType,
+                              plateNumberForInternational: payload.plateNumberForInternational || null,
+                              plateNumberForSaudi: payload.plateNumberForSaudi || null,
+                              slugForSaudiCarPlateNumber: null,
+                         },
+                         session,
                     );
                     if (!isExistCar) {
                          throw new AppError(StatusCodes.NOT_FOUND, 'Car creation failed.');
@@ -166,8 +182,9 @@ const createClient = async (payload: any) => {
 };
 
 const getAllClients = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: IClient[] }> => {
+     console.log("🚀 ~ getAllClients ~ query:", query)
      const queryBuilder = new QueryBuilder(Client.find(), query);
-     const result = await queryBuilder.filter().sort().paginate().fields().modelQuery;
+     const result = await queryBuilder.filter().sort().paginate().fields().search(['contact']).modelQuery;
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };

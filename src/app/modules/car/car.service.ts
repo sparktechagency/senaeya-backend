@@ -1,13 +1,15 @@
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
-import { Icar, IcarCreate } from './car.interface';
+import { ICar, IcarCreate } from './car.interface';
 import { Car } from './car.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import unlinkFile from '../../../shared/unlinkFile';
 import { CLIENT_CAR_TYPE } from '../client/client.enum';
 import { imageService } from '../image/image.service';
+import { generateSlug } from './car.utils';
 
-const createCar = async (payload: IcarCreate): Promise<Icar> => {
+const createCar = async (payload: IcarCreate): Promise<ICar> => {
+     console.log("🚀 ~ createCar ~ payload:", payload)
      if (payload.carType == CLIENT_CAR_TYPE.SAUDI) {
           // payload must include plateNumberForSaudi
           if (
@@ -24,11 +26,30 @@ const createCar = async (payload: IcarCreate): Promise<Icar> => {
                     throw new AppError(StatusCodes.NOT_FOUND, 'Plate number for Saudi symbol not found.');
                }
           }
+          payload.slugForSaudiCarPlateNumber = generateSlug(payload.plateNumberForSaudi);
+          console.log('🚀 ~ payload.plateNumberForSaudi.slug:', payload.slugForSaudiCarPlateNumber);
+          // find saudi car exist by number
+          const isExistCar = await Car.findOne({
+               slugForSaudiCarPlateNumber: payload.slugForSaudiCarPlateNumber,
+               carType: CLIENT_CAR_TYPE.SAUDI,
+          });
+          if (isExistCar) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Car already exists by the slug.');
+          }
      }
      if (payload.carType == CLIENT_CAR_TYPE.INTERNATIONAL) {
           // payload must include plateNumberForInternational
           if (!payload.plateNumberForInternational) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'Plate number for international is required.');
+          }
+
+          // find international car exist by number
+          const isExistCar = await Car.findOne({
+               plateNumberForInternational: payload.plateNumberForInternational,
+               carType: CLIENT_CAR_TYPE.INTERNATIONAL,
+          });
+          if (isExistCar) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Car already exists.');
           }
      }
      const result = await Car.create(payload);
@@ -41,19 +62,78 @@ const createCar = async (payload: IcarCreate): Promise<Icar> => {
      return result;
 };
 
-const getAllCars = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: Icar[] }> => {
+
+const createCarWithSession = async (payload: IcarCreate, session: any)=> {
+     if (payload.carType == CLIENT_CAR_TYPE.SAUDI) {
+          // payload must include plateNumberForSaudi
+          if (
+               !payload.plateNumberForSaudi?.symbol ||
+               !payload.plateNumberForSaudi?.numberEnglish ||
+               !payload.plateNumberForSaudi?.numberArabic ||
+               !payload.plateNumberForSaudi?.alphabetsCombinations
+          ) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Plate number for Saudi is required.');
+          }
+          if (payload.plateNumberForSaudi.symbol) {
+               const isExistSymbol = await imageService.getImageById(payload.plateNumberForSaudi.symbol);
+               if (!isExistSymbol) {
+                    throw new AppError(StatusCodes.NOT_FOUND, 'Plate number for Saudi symbol not found.');
+               }
+          }
+          payload.slugForSaudiCarPlateNumber = generateSlug(payload.plateNumberForSaudi);
+          console.log('🚀 ~ payload.plateNumberForSaudi.slug:', payload.slugForSaudiCarPlateNumber);
+          // find saudi car exist by number
+          const isExistCar = await Car.findOne({
+               slugForSaudiCarPlateNumber: payload.slugForSaudiCarPlateNumber,
+               carType: CLIENT_CAR_TYPE.SAUDI,
+          });
+          if (isExistCar) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Car already exists by the slug.');
+          }
+     }
+     if (payload.carType == CLIENT_CAR_TYPE.INTERNATIONAL) {
+          // payload must include plateNumberForInternational
+          if (!payload.plateNumberForInternational) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Plate number for international is required.');
+          }
+
+          // find international car exist by number
+          const isExistCar = await Car.findOne({
+               plateNumberForInternational: payload.plateNumberForInternational,
+               carType: CLIENT_CAR_TYPE.INTERNATIONAL,
+          });
+          if (isExistCar) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Car already exists.');
+          }
+     }
+     const [result] = await Car.create([payload], { session });
+     if (!result) {
+          if (payload.image) {
+               unlinkFile(payload.image);
+          }
+          throw new AppError(StatusCodes.NOT_FOUND, 'Car not found.');
+     }
+     return result;
+};
+
+const getAllCars = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: ICar[] }> => {
      const queryBuilder = new QueryBuilder(Car.find(), query);
-     const result = await queryBuilder.filter().sort().paginate().fields().modelQuery;
+     const result = await queryBuilder
+          .filter()
+          .sort()
+          .paginate()
+          .fields()
+          .search(['vin', 'model', 'year',  'description', 'plateNumberForInternational', 'slugForSaudiCarPlateNumber']).modelQuery;
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };
 
-const getAllUnpaginatedCars = async (): Promise<Icar[]> => {
+const getAllUnpaginatedCars = async (): Promise<ICar[]> => {
      const result = await Car.find();
      return result;
 };
 
-const updateCar = async (id: string, payload: Partial<Icar>): Promise<Icar | null> => {
+const updateCar = async (id: string, payload: Partial<ICar>): Promise<ICar | null> => {
      const isExist = await Car.findById(id);
      if (!isExist) {
           if (payload.image) {
@@ -68,7 +148,7 @@ const updateCar = async (id: string, payload: Partial<Icar>): Promise<Icar | nul
      return await Car.findByIdAndUpdate(id, payload, { new: true });
 };
 
-const deleteCar = async (id: string): Promise<Icar | null> => {
+const deleteCar = async (id: string): Promise<ICar | null> => {
      const result = await Car.findById(id);
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Car not found.');
@@ -79,7 +159,7 @@ const deleteCar = async (id: string): Promise<Icar | null> => {
      return result;
 };
 
-const hardDeleteCar = async (id: string): Promise<Icar | null> => {
+const hardDeleteCar = async (id: string): Promise<ICar | null> => {
      const result = await Car.findByIdAndDelete(id);
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Car not found.');
@@ -90,7 +170,7 @@ const hardDeleteCar = async (id: string): Promise<Icar | null> => {
      return result;
 };
 
-const getCarById = async (id: string): Promise<Icar | null> => {
+const getCarById = async (id: string): Promise<ICar | null> => {
      const result = await Car.findById(id);
      return result;
 };
@@ -103,4 +183,5 @@ export const carService = {
      deleteCar,
      hardDeleteCar,
      getCarById,
+     createCarWithSession,
 };

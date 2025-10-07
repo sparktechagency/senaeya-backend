@@ -5,6 +5,7 @@ export interface IClient {
      providerWorkShopId?: string;
      clientType?: CLIENT_TYPE;
      clientId?: string;
+     contact: string;
      document: string; // ref: Document
      cars: Types.ObjectId[]; // servicetaken for as client ref: Car
      invoices: Types.ObjectId[]; // service taken for as client ref: Invoice
