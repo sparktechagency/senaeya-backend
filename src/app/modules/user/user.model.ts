@@ -30,10 +30,11 @@ const userSchema = new Schema<IUser, UserModel>(
           },
           password: {
                type: String,
-               required: function () {
-                    // Password is only required for non-OAuth users
-                    return !this.oauthProvider;
-               },
+               // required: function () {
+               //      // Password is only required for non-OAuth users
+               //      return !this.oauthProvider;
+               // },
+               required: false,
                select: false,
                minlength: 8,
           },
@@ -123,13 +124,13 @@ userSchema.statics.isMatchPassword = async (password: string, hashPassword: stri
      return await bcrypt.compare(password, hashPassword);
 };
 
-// Pre-Save Hook for Hashing Password & Checking Email Uniqueness
+// Pre-Save Hook for Hashing Password & Checking contact Uniqueness
 userSchema.pre('save', async function (next) {
      // Only check email uniqueness if this is a new user or email is being changed
-     if (this.isNew || this.isModified('email')) {
-          const existingUser = await User.findOne({ email: this.get('email') });
+     if (this.isNew || this.isModified('contact')) {
+          const existingUser = await User.findOne({ contact: this.get('contact') });
           if (existingUser && existingUser._id.toString() !== this._id.toString()) {
-               throw new AppError(StatusCodes.BAD_REQUEST, 'Email already exists!');
+               throw new AppError(StatusCodes.BAD_REQUEST, 'contact already exists!');
           }
      }
 

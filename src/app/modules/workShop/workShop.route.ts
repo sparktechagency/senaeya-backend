@@ -10,23 +10,32 @@ import { USER_ROLES } from '../../../enums/user';
 
 const router = express.Router();
 
-router.post('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-    fileUploadHandler(),
-    parseFileData(FOLDER_NAMES.IMAGE),
-    validateRequest(workShopValidation.createWorkShopZodSchema), workShopController.createWorkShop);
+router.post(
+     '/',
+     auth(USER_ROLES.WORKSHOP_OWNER),
+     fileUploadHandler(),
+     parseFileData(FOLDER_NAMES.IMAGE),
+     validateRequest(workShopValidation.createWorkShopZodSchema),
+     workShopController.createWorkShop,
+);
 
-router.get('/', workShopController.getAllWorkShops);
+router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), workShopController.getAllWorkShops);
 
-router.get('/unpaginated', workShopController.getAllUnpaginatedWorkShops);
+router.get('/unpaginated', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), workShopController.getAllUnpaginatedWorkShops);
 
 router.delete('/hard-delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), workShopController.hardDeleteWorkShop);
 
-router.patch('/:id', fileUploadHandler(),
-    parseFileData(FOLDER_NAMES.IMAGE), auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-    validateRequest(workShopValidation.updateWorkShopZodSchema), workShopController.updateWorkShop);
+router.patch(
+     '/:id',
+     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.WORKSHOP_OWNER),
+     fileUploadHandler(),
+     parseFileData(FOLDER_NAMES.IMAGE),
+     validateRequest(workShopValidation.updateWorkShopZodSchema),
+     workShopController.updateWorkShop,
+);
 
 router.delete('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), workShopController.deleteWorkShop);
 
-router.get('/:id', workShopController.getWorkShopById);
+router.get('/:id', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER, USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), workShopController.getWorkShopById);
 
 export const workShopRoutes = router;

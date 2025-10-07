@@ -8,23 +8,23 @@ const router = express.Router();
 
 router.post('/login', validateRequest(AuthValidation.createLoginZodSchema), AuthController.loginUser);
 router.post('/login-with-finger-print', validateRequest(AuthValidation.createLoginZodSchema), AuthController.loginUserWithFingerPrint);
-router.post('/refresh-token', AuthController.refreshToken);
+// router.post('/refresh-token', AuthController.refreshToken);
 router.post('/forget-password', validateRequest(AuthValidation.createForgetPasswordZodSchema), AuthController.forgetPassword);
 
-router.post('/verify-email', validateRequest(AuthValidation.createVerifyEmailZodSchema), AuthController.verifyEmail);
+// router.post('/verify-email', validateRequest(AuthValidation.createVerifyEmailZodSchema), AuthController.verifyEmail);
 
-router.post('/reset-password', validateRequest(AuthValidation.createResetPasswordZodSchema), AuthController.resetPassword);
-router.post('/dashboard/forget-password', validateRequest(AuthValidation.createForgetPasswordZodSchema), AuthController.forgetPasswordByUrl);
+// router.post('/reset-password', validateRequest(AuthValidation.createResetPasswordZodSchema), AuthController.resetPassword);
+// router.post('/dashboard/forget-password', validateRequest(AuthValidation.createForgetPasswordZodSchema), AuthController.forgetPasswordByUrl);
 
-router.post('/dashboard/reset-password', auth(USER_ROLES.ADMIN, USER_ROLES.ADMIN), validateRequest(AuthValidation.createResetPasswordZodSchema), AuthController.resetPasswordByUrl);
+// router.post('/dashboard/reset-password', auth(USER_ROLES.ADMIN, USER_ROLES.ADMIN), validateRequest(AuthValidation.createResetPasswordZodSchema), AuthController.resetPasswordByUrl);
 
-router.post('/change-password', auth(USER_ROLES.ADMIN, USER_ROLES.WORKSHOP_OWNER, USER_ROLES.ADMIN), validateRequest(AuthValidation.createChangePasswordZodSchema), AuthController.changePassword);
-router.post('/resend-otp', AuthController.resendOtp);
+// router.post('/change-password', auth(USER_ROLES.ADMIN, USER_ROLES.WORKSHOP_OWNER, USER_ROLES.ADMIN), validateRequest(AuthValidation.createChangePasswordZodSchema), AuthController.changePassword);
+// router.post('/resend-otp', AuthController.resendOtp);
 
 // OAuth Routes
-router.get('/google', AuthController.googleAuth);
-router.get('/google/callback', AuthController.googleAuthCallback);
-router.get('/facebook', AuthController.facebookAuth);
-router.get('/facebook/callback', AuthController.facebookAuthCallback);
+// router.get('/google', AuthController.googleAuth);
+// router.get('/google/callback', AuthController.googleAuthCallback);
+// router.get('/facebook', AuthController.facebookAuth);
+// router.get('/facebook/callback', AuthController.facebookAuthCallback);
 
 export const AuthRouter = router;

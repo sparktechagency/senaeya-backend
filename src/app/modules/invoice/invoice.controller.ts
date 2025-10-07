@@ -1,0 +1,95 @@
+import { Request, Response } from 'express';
+import catchAsync from '../../../shared/catchAsync';
+import sendResponse from '../../../shared/sendResponse';
+import { invoiceService } from './invoice.service';
+
+const createInvoice = catchAsync(async (req: Request, res: Response) => {
+     const result = await invoiceService.createInvoice(req.body);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Invoice created successfully',
+          data: result,
+     });
+});
+
+const getAllInvoices = catchAsync(async (req: Request, res: Response) => {
+     const result = await invoiceService.getAllInvoices(req.query);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Invoices retrieved successfully',
+          data: result,
+     });
+});
+
+const getAllUnpaginatedInvoices = catchAsync(async (req: Request, res: Response) => {
+     const result = await invoiceService.getAllUnpaginatedInvoices();
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Invoices retrieved successfully',
+          data: result,
+     });
+});
+
+const updateInvoice = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await invoiceService.updateInvoice(id, req.body);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Invoice updated successfully',
+          data: result || undefined,
+     });
+});
+
+const deleteInvoice = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await invoiceService.deleteInvoice(id);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Invoice deleted successfully',
+          data: result || undefined,
+     });
+});
+
+const hardDeleteInvoice = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await invoiceService.hardDeleteInvoice(id);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Invoice deleted successfully',
+          data: result || undefined,
+     });
+});
+
+const getInvoiceById = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await invoiceService.getInvoiceById(id);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Invoice retrieved successfully',
+          data: result || undefined,
+     });
+});  
+
+export const invoiceController = {
+     createInvoice,
+     getAllInvoices,
+     getAllUnpaginatedInvoices,
+     updateInvoice,
+     deleteInvoice,
+     hardDeleteInvoice,
+     getInvoiceById
+};

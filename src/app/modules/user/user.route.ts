@@ -39,15 +39,15 @@ router.route('/find/email/:email').get(
      UserController.findUserByEmail
 );
 
-router.route('/find/google/:googleId').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.findUserByGoogleId
-);
+// router.route('/find/google/:googleId').get(
+//      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+//      UserController.findUserByGoogleId
+// );
 
-router.route('/find/facebook/:facebookId').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.findUserByFacebookId
-);
+// router.route('/find/facebook/:facebookId').get(
+//      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+//      UserController.findUserByFacebookId
+// );
 
 router.route('/all').get(
      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
@@ -59,10 +59,10 @@ router.route('/role/:role').get(
      UserController.getUsersByRole
 );
 
-router.route('/oauth').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.getOAuthUsers
-);
+// router.route('/oauth').get(
+//      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+//      UserController.getOAuthUsers
+// );
 
 router.route('/local').get(
      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
@@ -79,14 +79,14 @@ router.route('/stats').get(
      UserController.getUserStats
 );
 
-router.route('/:userId/link-oauth').post(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.linkOAuthAccount
-);
+// router.route('/:userId/link-oauth').post(
+//      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+//      UserController.linkOAuthAccount
+// );
 
-router.route('/:userId/unlink-oauth').post(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.unlinkOAuthAccount
-);
+// router.route('/:userId/unlink-oauth').post(
+//      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+//      UserController.unlinkOAuthAccount
+// );
 
 export const UserRouter = router;

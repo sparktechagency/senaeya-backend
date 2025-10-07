@@ -4,11 +4,18 @@ import { IworkShop } from './workShop.interface';
 import { WorkShop } from './workShop.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import unlinkFile from '../../../shared/unlinkFile';
+import { USER_ROLES } from '../../../enums/user';
+import { User } from '../user/user.model';
 
-const createWorkShop = async (payload: IworkShop): Promise<IworkShop> => {
+const createWorkShop = async (payload: IworkShop, user: any): Promise<IworkShop> => {
+     const userIs = await User.findById(user.id);
+     if (userIs?.helperUserId) {
+          payload.helperUserId = userIs.helperUserId;
+     }
+     payload.ownerId = user.id;
      const result = await WorkShop.create(payload);
      if (!result) {
-          if(payload.image){
+          if (payload.image) {
                unlinkFile(payload.image);
           }
           throw new AppError(StatusCodes.NOT_FOUND, 'WorkShop not found.');
@@ -16,7 +23,7 @@ const createWorkShop = async (payload: IworkShop): Promise<IworkShop> => {
      return result;
 };
 
-const getAllWorkShops = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number; }; result: IworkShop[]; }> => {
+const getAllWorkShops = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: IworkShop[] }> => {
      const queryBuilder = new QueryBuilder(WorkShop.find(), query);
      const result = await queryBuilder.filter().sort().paginate().fields().modelQuery;
      const meta = await queryBuilder.countTotal();
@@ -28,19 +35,38 @@ const getAllUnpaginatedWorkShops = async (): Promise<IworkShop[]> => {
      return result;
 };
 
-const updateWorkShop = async (id: string, payload: Partial<IworkShop>): Promise<IworkShop | null> => {
+const updateWorkShop = async (id: string, payload: Partial<IworkShop>, user: any): Promise<IworkShop | null> => {
+     if (user.role === USER_ROLES.WORKSHOP_OWNER) {
+          const forbiddenFieldsForShopOwner = ['workshopNameEnglish', 'unn', 'crn', 'mln', 'taxVatNumber', 'bankAccountNumber'];
+
+          for (const field of forbiddenFieldsForShopOwner) {
+               if (Object.prototype.hasOwnProperty.call(payload, field)) {
+                    throw new AppError(
+                         StatusCodes.BAD_REQUEST,
+                         `WorkShop owner cannot update 'workshopNameEnglish', 'unn', 'crn', 'mln', 'taxVatNumber', 'bankAccountNumber'. Plz connect to shop owner.`,
+                    );
+               }
+          }
+     }
+
      const isExist = await WorkShop.findById(id);
      if (!isExist) {
-          if(payload.image){
+          if (payload.image) {
                unlinkFile(payload.image);
           }
           throw new AppError(StatusCodes.NOT_FOUND, 'WorkShop not found.');
      }
 
-     if(isExist.image){
+     if (user.role === USER_ROLES.WORKSHOP_OWNER) {
+          if (isExist.ownerId.toString() !== user.id.toString()) {
+               throw new AppError(StatusCodes.FORBIDDEN, 'You are not authorized to update this workShop.');
+          }
+     }
+
+     if (isExist.image) {
           unlinkFile(isExist.image);
      }
-     return await WorkShop.findByIdAndUpdate(id, payload, { new: true });
+     return await WorkShop.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
 };
 
 const deleteWorkShop = async (id: string): Promise<IworkShop | null> => {
@@ -59,7 +85,7 @@ const hardDeleteWorkShop = async (id: string): Promise<IworkShop | null> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'WorkShop not found.');
      }
-     if(result.image){
+     if (result.image) {
           unlinkFile(result.image);
      }
      return result;
@@ -68,7 +94,7 @@ const hardDeleteWorkShop = async (id: string): Promise<IworkShop | null> => {
 const getWorkShopById = async (id: string): Promise<IworkShop | null> => {
      const result = await WorkShop.findById(id);
      return result;
-};   
+};
 
 export const workShopService = {
      createWorkShop,
@@ -77,5 +103,5 @@ export const workShopService = {
      updateWorkShop,
      deleteWorkShop,
      hardDeleteWorkShop,
-     getWorkShopById
+     getWorkShopById,
 };

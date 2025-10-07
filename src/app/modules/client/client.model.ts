@@ -1,0 +1,31 @@
+import { Schema, model } from 'mongoose';
+import { IClient } from './client.interface';
+import { CLIENT_TYPE } from './client.enum';
+
+const ClientSchema = new Schema<IClient>({
+     providerWorkShopId: { type: [Schema.Types.ObjectId], ref: 'WorkShop', required: true },
+     clientType: { type: String, enum: CLIENT_TYPE, required: true },
+     clientId: { type: String, required: true },
+     cars: { type: [Schema.Types.ObjectId], ref: 'Car', required: true, default: [] },
+     invoices: { type: [Schema.Types.ObjectId], ref: 'Invoice', required: true, default: [] },
+     document: { type: String, required: true },
+     isDeleted: { type: Boolean, default: false },
+     deletedAt: { type: Date },
+}, { timestamps: true });
+
+ClientSchema.pre('find', function (next) {
+     this.find({ isDeleted: false });
+     next();
+});
+
+ClientSchema.pre('findOne', function (next) {
+     this.findOne({ isDeleted: false });
+     next();
+});
+
+ClientSchema.pre('aggregate', function (next) {
+     this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+     next();
+});       
+
+export const Client = model<IClient>('Client', ClientSchema);

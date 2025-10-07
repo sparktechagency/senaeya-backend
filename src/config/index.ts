@@ -52,6 +52,9 @@ export default {
           password: process.env.SUPER_ADMIN_PASSWORD,
           contact: process.env.SUPER_ADMIN_CONTACT,
      },
+     user: {
+          password: process.env.USER_DEFAULT_PASSWORD,
+     },
      whatsapp: {
           token: process.env.WHATSAPP_TOKEN,
           instanceId: process.env.WHATSAPP_INSTANCE_ID,

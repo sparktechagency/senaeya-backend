@@ -4,7 +4,7 @@ import sendResponse from '../../../shared/sendResponse';
 import { workShopService } from './workShop.service';
 
 const createWorkShop = catchAsync(async (req: Request, res: Response) => {
-     const result = await workShopService.createWorkShop(req.body);
+     const result = await workShopService.createWorkShop(req.body, req.user);
 
      sendResponse(res, {
           statusCode: 200,
@@ -38,7 +38,7 @@ const getAllUnpaginatedWorkShops = catchAsync(async (req: Request, res: Response
 
 const updateWorkShop = catchAsync(async (req: Request, res: Response) => {
      const { id } = req.params;
-     const result = await workShopService.updateWorkShop(id, req.body);
+     const result = await workShopService.updateWorkShop(id, req.body, req.user);
 
      sendResponse(res, {
           statusCode: 200,
