@@ -1,10 +1,12 @@
 import { Schema, model } from 'mongoose';
 import { Iwork } from './work.interface';
+import { WorkType } from './work.enum';
 
 const WorkSchema = new Schema<Iwork>(
      {
           title: { type: String, required: true, unique: true },
           worksCategories: { type: Schema.Types.ObjectId, ref: 'WorksCategories', required: true },
+          type: { type: String, enum: Object.values(WorkType), required: true, default: '' },
           code: { type: String, required: true, unique: true },
           cost: { type: Number, required: true, min: 0 },
           isDeleted: { type: Boolean, default: false },

@@ -13,8 +13,6 @@ const router = express.Router();
 router.post(
      '/',
      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     fileUploadHandler(),
-     parseFileData(FOLDER_NAMES.OTHERS),
      validateRequest(workValidation.createWorkZodSchema),
      workController.createWork,
 );
@@ -35,8 +33,8 @@ router.delete('/hard-delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN)
 
 router.patch(
      '/:id',
-     fileUploadHandler(),
-     parseFileData(FOLDER_NAMES.DOCUMENT),
+     // fileUploadHandler(),
+     // parseFileData(FOLDER_NAMES.DOCUMENT),
      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
      validateRequest(workValidation.updateWorkZodSchema),
      workController.updateWork,

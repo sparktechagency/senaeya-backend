@@ -85,15 +85,10 @@ const getAllUnpaginatedWorks = async (): Promise<Iwork[]> => {
 const updateWork = async (id: string, payload: Partial<Iwork>): Promise<Iwork | null> => {
      const isExist = await Work.findById(id);
      if (!isExist) {
-          // if(payload.image){
-          //      unlinkFile(payload.image);
-          // }
           throw new AppError(StatusCodes.NOT_FOUND, 'Work not found.');
      }
 
-     if (isExist.image) {
-          unlinkFile(isExist.image);
-     }
+     console.log('🚀 ~ updateWork ~ payload:', payload);
      return await Work.findByIdAndUpdate(id, payload, { new: true });
 };
 
@@ -113,9 +108,9 @@ const hardDeleteWork = async (id: string): Promise<Iwork | null> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Work not found.');
      }
-     if (result.image) {
-          unlinkFile(result.image);
-     }
+     // if (result.image) {
+     //      unlinkFile(result.image);
+     // }
      return result;
 };
 
