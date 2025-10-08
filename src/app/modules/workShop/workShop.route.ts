@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post(
      '/',
-     auth(USER_ROLES.WORKSHOP_OWNER),
+     auth(USER_ROLES.WORKSHOP_OWNER, USER_ROLES.WORKSHOP_MEMBER),
      fileUploadHandler(),
      parseFileData(FOLDER_NAMES.IMAGE),
      validateRequest(workShopValidation.createWorkShopZodSchema),
@@ -20,6 +20,7 @@ router.post(
 );
 
 router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), workShopController.getAllWorkShops);
+router.get('/my', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), workShopController.getAllWorkShops);
 
 router.get('/unpaginated', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), workShopController.getAllUnpaginatedWorkShops);
 

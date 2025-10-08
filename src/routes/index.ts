@@ -11,6 +11,7 @@ import { carRoutes } from '../app/modules/car/car.route';
 import { worksCategoriesRoutes } from '../app/modules/worksCategories/worksCategories.route';
 import { carBrandCountriesRoutes } from '../app/modules/carBrandCountries/carBrandCountries.route';
 import { workRoutes } from '../app/modules/work/work.route';
+import { expenseRoutes } from '../app/modules/expense/expense.route';
 const router = express.Router();
 const routes = [
      {
@@ -60,6 +61,10 @@ const routes = [
      {
           path: '/works',
           route: workRoutes,
+     },
+     {
+          path: '/expenses',
+          route: expenseRoutes,
      },
 ];
 
