@@ -10,6 +10,7 @@ import { USER_ROLES } from '../../../enums/user';
 import { carRoutes } from '../car/car.route';
 import { invoiceRoutes } from '../invoice/invoice.route';
 import { carBrandRoutes } from '../carBrand/carBrand.route';
+import validateUserAuthority from '../../middleware/validateUserAuthority';
 
 const router = express.Router();
 
@@ -18,30 +19,32 @@ router.use('/invoices', invoiceRoutes);
 router.use('/car-brands', carBrandRoutes);
 router.post(
      '/',
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+     auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER),
+     validateUserAuthority(),
      fileUploadHandler(),
      parseFileData(FOLDER_NAMES.DOCUMENT),
      validateRequest(clientValidation.createClientZodSchema),
      clientController.createClient,
 );
 
-router.get('/', clientController.getAllClients);
+router.get('/', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateUserAuthority(), clientController.getAllClients);
 
-router.get('/unpaginated', clientController.getAllUnpaginatedClients);
+router.get('/unpaginated', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateUserAuthority(), clientController.getAllUnpaginatedClients);
 
-router.delete('/hard-delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), clientController.hardDeleteClient);
+router.delete('/hard-delete/:id', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateUserAuthority(), clientController.hardDeleteClient);
 
 router.patch(
      '/:id',
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+     auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER),
+     validateUserAuthority(),
      fileUploadHandler(),
      parseFileData(FOLDER_NAMES.DOCUMENT),
      validateRequest(clientValidation.updateClientZodSchema),
      clientController.updateClient,
 );
 
-router.delete('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), clientController.deleteClient);
+router.delete('/:id', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateUserAuthority(), clientController.deleteClient);
 
-router.get('/:id', clientController.getClientById);
+router.get('/:id', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateUserAuthority(), clientController.getClientById);
 
 export const clientRoutes = router;

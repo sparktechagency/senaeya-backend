@@ -154,6 +154,7 @@ const createClient = async (payload: any) => {
                               plateNumberForInternational: payload.plateNumberForInternational || null,
                               plateNumberForSaudi: payload.plateNumberForSaudi || null,
                               slugForSaudiCarPlateNumber: null,
+                              providerWorkShopId: payload.providerWorkShopId,
                          },
                          session,
                     );

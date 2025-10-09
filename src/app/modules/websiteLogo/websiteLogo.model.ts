@@ -1,12 +1,14 @@
-import { Schema, model } from 'mongoose';
+import { Schema, Types, model } from 'mongoose';
 
 export interface IWebsiteLogo {
+     providerWorkShopId: Types.ObjectId;
      logo: string;
      status: 'light' | 'dark';
 }
 
 const websiteLogoSchema = new Schema<IWebsiteLogo>(
      {
+          providerWorkShopId: { type: Schema.Types.ObjectId, ref: 'WorkShop', required: true },
           logo: {
                type: String,
                required: true,

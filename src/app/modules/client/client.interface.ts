@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { CLIENT_TYPE } from './client.enum';
 
 export interface IClient {
-     providerWorkShopId?: string;
+     providerWorkShopId: Types.ObjectId;
      clientType?: CLIENT_TYPE;
      clientId?: string;
      contact: string;

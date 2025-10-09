@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { CLIENT_CAR_TYPE } from "../client/client.enum";
 
 export interface ICar {
+     providerWorkShopId: Types.ObjectId;
      brand: Types.ObjectId;
      model: string;
      year: string;

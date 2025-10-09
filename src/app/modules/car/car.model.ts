@@ -3,6 +3,7 @@ import { ICar } from './car.interface';
 import { CLIENT_CAR_TYPE } from '../client/client.enum';
 const CarSchema = new Schema<ICar>(
      {
+          providerWorkShopId:{ type: Schema.Types.ObjectId, ref: 'WorkShop', required: true },
           brand: { type: Schema.Types.ObjectId, ref: 'CarBrand', required: true },
           model: { type: String, required: true },
           year: { type: String, required: true },

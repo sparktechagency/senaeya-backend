@@ -4,7 +4,7 @@ import { CLIENT_CAR_TYPE, CLIENT_TYPE } from './client.enum';
 const createClientZodSchema = z.object({
      body: z
           .object({
-               providerWorkShopId: z.string(),
+               providerWorkShopId: z.string({ required_error: 'WorkShopId is required' }),
                clientType: z.nativeEnum(CLIENT_TYPE),
                workShopIdAsClient: z.string().optional(),
                brand: z.string().optional(),
@@ -53,7 +53,7 @@ const createClientZodSchema = z.object({
 
 const updateClientZodSchema = z.object({
      body: z.object({
-          providerWorkShopId: z.string(),
+          providerWorkShopId: z.string({ required_error: 'WorkShopId is required' }),
           clientType: z.nativeEnum(CLIENT_TYPE).optional(),
           // for worksop type ⬇️⬇️
           workShopIdAsClient: z.string().optional(),
