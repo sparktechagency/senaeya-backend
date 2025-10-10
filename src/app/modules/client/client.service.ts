@@ -167,7 +167,7 @@ const createClient = async (payload: any) => {
                await isExistClient.save({ session });
                await session.commitTransaction();
                session.endSession();
-               return { isExistClient };
+               return isExistClient;
           } catch (error) {
                console.log('🚀 ~ createClient ~ error:', error);
                // Abort the transaction on error

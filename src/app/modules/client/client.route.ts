@@ -20,9 +20,9 @@ router.use('/car-brands', carBrandRoutes);
 router.post(
      '/',
      auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER),
-     validateUserAuthority(),
      fileUploadHandler(),
      parseFileData(FOLDER_NAMES.DOCUMENT),
+     validateUserAuthority(),
      validateRequest(clientValidation.createClientZodSchema),
      clientController.createClient,
 );
@@ -36,9 +36,9 @@ router.delete('/hard-delete/:id', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WO
 router.patch(
      '/:id',
      auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER),
-     validateUserAuthority(),
      fileUploadHandler(),
      parseFileData(FOLDER_NAMES.DOCUMENT),
+     validateUserAuthority(),
      validateRequest(clientValidation.updateClientZodSchema),
      clientController.updateClient,
 );
