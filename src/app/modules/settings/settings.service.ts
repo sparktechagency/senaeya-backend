@@ -5,9 +5,9 @@ import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
 
 const upsertSettings = async (data: Partial<ISettings>): Promise<ISettings> => {
-     const existingSettings = await Settings.findOne({});
+     const existingSettings = await Settings.findOne({ providerWorkShopId: null });
      if (existingSettings) {
-          const updatedSettings = await Settings.findOneAndUpdate({}, data, {
+          const updatedSettings = await Settings.findOneAndUpdate({ providerWorkShopId: null }, data, {
                new: true,
           });
           return updatedSettings!;
@@ -20,7 +20,7 @@ const upsertSettings = async (data: Partial<ISettings>): Promise<ISettings> => {
      }
 };
 const getSettings = async (title: string) => {
-     const settings: any = await Settings.findOne().select(title);
+     const settings: any = await Settings.findOne({ providerWorkShopId: null }).select(title);
      if (title && settings[title]) {
           return settings[title];
      }
@@ -28,14 +28,14 @@ const getSettings = async (title: string) => {
 };
 
 const getTermsOfService = async () => {
-     const settings: any = await Settings.findOne();
+     const settings: any = await Settings.findOne({ providerWorkShopId: null });
      if (!settings) {
           return '';
      }
      return settings.termsOfService;
 };
 const getSupport = async () => {
-     const settings: any = await Settings.findOne();
+     const settings: any = await Settings.findOne({ providerWorkShopId: null });
 
      if (!settings) {
           return '';
@@ -43,7 +43,7 @@ const getSupport = async () => {
      return settings.support;
 };
 const getPrivacyPolicy = async () => {
-     const settings: any = await Settings.findOne();
+     const settings: any = await Settings.findOne({ providerWorkShopId: null });
 
      if (!settings) {
           return '';
@@ -51,7 +51,7 @@ const getPrivacyPolicy = async () => {
      return settings.privacyPolicy;
 };
 const getAboutUs = async () => {
-     const settings: any = await Settings.findOne();
+     const settings: any = await Settings.findOne({ providerWorkShopId: null });
 
      if (!settings) {
           return '';
@@ -70,7 +70,34 @@ const getAccountDelete = async () => {
 // const getSupport = async () => {
 //   return path.join(__dirname, '..', 'htmlResponse', 'support.html');
 // };
+
+const addWorkshopSetting = async (data: Partial<ISettings>) => {
+     const existingSettings = await Settings.findOne({ providerWorkShopId: data.providerWorkShopId });
+     if (existingSettings) {
+          const updatedSettings = await Settings.findOneAndUpdate({ providerWorkShopId: data.providerWorkShopId }, data, {
+               new: true,
+          });
+          return updatedSettings!;
+     } else {
+          const newSettings = await Settings.create(data);
+          if (!newSettings) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to add settings');
+          }
+          return newSettings;
+     }
+};
+
+const getWorkshopSetting = async (providerWorkShopId: string) => {
+     const settings = await Settings.findOne({ providerWorkShopId });
+     if (!settings) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Settings not found');
+     }
+     return settings;
+};
+
 export const settingsService = {
+     addWorkshopSetting,
+     getWorkshopSetting,
      upsertSettings,
      getSettings,
      getPrivacyPolicy,

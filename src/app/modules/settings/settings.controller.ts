@@ -69,7 +69,28 @@ const getAboutUs = catchAsync(async (req, res): Promise<void> => {
 //   const htmlContent = await settingsService.getSupport();
 //   res.sendFile(htmlContent);
 // });
+
+const addWorkshopSetting = catchAsync(async (req, res) => {
+     const result = await settingsService.addWorkshopSetting(req.body);
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Workshop setting added successfully',
+          data: result,
+     });
+});
+const getWorkshopSetting = catchAsync(async (req, res) => {
+     const result = await settingsService.getWorkshopSetting(req.body.providerWorkShopId);
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Workshop setting retrieved successfully',
+          data: result,
+     });
+});
 export const settingsController = {
+     addWorkshopSetting,
+     getWorkshopSetting,
      getSettings,
      getPrivacyPolicy,
      getAboutUs,
