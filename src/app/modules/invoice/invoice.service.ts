@@ -1,49 +1,71 @@
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
-import { Iinvoice } from './invoice.interface';
+import { IInvoice } from './invoice.interface';
 import { Invoice } from './invoice.model';
 import QueryBuilder from '../../builder/QueryBuilder';
-import unlinkFile from '../../../shared/unlinkFile';
+import { PaymentMethod } from '../payment/payment.enum';
 
-const createInvoice = async (payload: Iinvoice): Promise<Iinvoice> => {
-     const result = await Invoice.create(payload);
-     if (!result) {
-          if(payload.image){
-               unlinkFile(payload.image);
+const createInvoice = async (payload: IInvoice) => {
+     if (payload.paymentMethod !== PaymentMethod.POSTPAID) {
+          payload.postPaymentDate = null;
+     } else {
+          // convert payload.postPaymentDate string to Date
+          console.log("🚀 ~ createInvoice ~ payload.postPaymentDate:", payload.postPaymentDate)
+          if (payload.postPaymentDate && typeof payload.postPaymentDate === 'string') {
+               payload.postPaymentDate = new Date(payload.postPaymentDate);
           }
+          console.log("🚀 ~ createInvoice ~ payload.postPaymentDate:", payload.postPaymentDate)
+     }
+     const invoice = new Invoice(payload);
+     // Validate the order data
+     await invoice.validate();
+     const result = await invoice.save();
+     if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Invoice not found.');
      }
-     return result;
+     const populatedResult = await Invoice.findById(result._id)
+          .populate({
+               path: 'client',
+               select: 'clientId clientType',
+               populate: {
+                    path: 'clientId',
+                    select: 'name contact',
+               },
+          })
+          .populate({
+               path: 'car',
+               select: 'model brand year plateNumberForInternational plateNumberForSaudi',
+               populate: {
+                    path: 'brand plateNumberForSaudi.symbol',
+                    // model: 'CarBrand',
+                    // select: 'title image',
+               },
+          });
+     return populatedResult;
 };
 
-const getAllInvoices = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number; }; result: Iinvoice[]; }> => {
+const getAllInvoices = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: IInvoice[] }> => {
      const queryBuilder = new QueryBuilder(Invoice.find(), query);
      const result = await queryBuilder.filter().sort().paginate().fields().search(['description']).modelQuery;
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };
 
-const getAllUnpaginatedInvoices = async (): Promise<Iinvoice[]> => {
+const getAllUnpaginatedInvoices = async (): Promise<IInvoice[]> => {
      const result = await Invoice.find();
      return result;
 };
 
-const updateInvoice = async (id: string, payload: Partial<Iinvoice>): Promise<Iinvoice | null> => {
+const updateInvoice = async (id: string, payload: Partial<IInvoice>): Promise<IInvoice | null> => {
      const isExist = await Invoice.findById(id);
      if (!isExist) {
-          if(payload.image){
-               unlinkFile(payload.image);
-          }
           throw new AppError(StatusCodes.NOT_FOUND, 'Invoice not found.');
      }
 
-     if(isExist.image){
-          unlinkFile(isExist.image);
-     }
      return await Invoice.findByIdAndUpdate(id, payload, { new: true });
 };
 
-const deleteInvoice = async (id: string): Promise<Iinvoice | null> => {
+const deleteInvoice = async (id: string): Promise<IInvoice | null> => {
      const result = await Invoice.findById(id);
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Invoice not found.');
@@ -54,21 +76,35 @@ const deleteInvoice = async (id: string): Promise<Iinvoice | null> => {
      return result;
 };
 
-const hardDeleteInvoice = async (id: string): Promise<Iinvoice | null> => {
+const hardDeleteInvoice = async (id: string): Promise<IInvoice | null> => {
      const result = await Invoice.findByIdAndDelete(id);
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Invoice not found.');
      }
-     if(result.image){
-          unlinkFile(result.image);
-     }
      return result;
 };
 
-const getInvoiceById = async (id: string): Promise<Iinvoice | null> => {
-     const result = await Invoice.findById(id);
+const getInvoiceById = async (id: string): Promise<IInvoice | null> => {
+     const result = await Invoice.findById(id)
+          .populate({
+               path: 'client',
+               select: 'clientId clientType',
+               populate: {
+                    path: 'clientId',
+                    select: 'name contact',
+               },
+          })
+          .populate({
+               path: 'car',
+               select: 'model brand year plateNumberForInternational plateNumberForSaudi',
+               populate: {
+                    path: 'brand plateNumberForSaudi.symbol',
+                    // model: 'CarBrand',
+                    // select: 'title image',
+               },
+          });
      return result;
-};   
+};
 
 export const invoiceService = {
      createInvoice,
@@ -77,5 +113,5 @@ export const invoiceService = {
      updateInvoice,
      deleteInvoice,
      hardDeleteInvoice,
-     getInvoiceById
+     getInvoiceById,
 };

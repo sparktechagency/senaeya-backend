@@ -1,17 +1,39 @@
 import { Types } from 'mongoose';
+import { DiscountType } from './invoice.enum';
+import { PaymentMethod, PaymentStatus } from '../payment/payment.enum';
 
-export interface Iinvoice {
-     client: Types.ObjectId;
+export interface IInvoiceWork {
+     work: Types.ObjectId;
+     quantity: number;
+     finalCost: number; // work.cost * quantity
+}
+
+export interface IInvoice {
      providerWorkShopId: Types.ObjectId;
-     image: string;
-     title: string;
-     description: string;
+     client: Types.ObjectId;
+     discount?: number;
+     discountType?: DiscountType;
+     worksList?: IInvoiceWork[]; // work.type === 'service'
+     sparePartsList?: IInvoiceWork[]; // work.type === 'spare parts'
+     paymentMethod: PaymentMethod;
+     paymentStatus: PaymentStatus;
+     postPaymentDate?: Date | null; // only if the paymentMethod is postpaid
+     payment?: Types.ObjectId | null;
+     totalCostExcludingTax: number; // based on the total cost(((worksList.reduce((total, work) => total + work.finalCost, 0)) + discount)+sparePartsList.reduce((total, work) => total + work.finalCost, 0))
+     taxAmount: number; // based on the totalCostExcludingTax * taxPercentage
+     totalCostIncludingTax: number; // based on the totalCostExcludingTax + taxAmount
+     taxPercentage: number; // get from website settings
+     finalDiscountInFlatAmount: number; // based on the totalCostExcludingTax + taxAmount - discount
+     finalCost: number; // based on the totalCostExcludingTax + taxAmount - discount
+     totalCostOfWorkShopExcludingTax: number;
+     totalCostOfSparePartsExcludingTax: number;
+     car: Types.ObjectId;
      createdAt: Date;
      updatedAt: Date;
      isDeleted: boolean;
      deletedAt?: Date;
 }
 
-export type IinvoiceFilters = {
+export type IInvoiceFilters = {
      searchTerm?: string;
 };

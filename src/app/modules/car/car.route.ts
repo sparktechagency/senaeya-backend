@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.post('/', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateUserAuthority(), validateRequest(carValidation.createCarZodSchema), carController.createCar);
 
-router.get('/', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateUserAuthority(), carController.getAllCars);
+router.get('/', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER,USER_ROLES.SUPER_ADMIN), validateUserAuthority(), carController.getAllCars);
 
 router.get('/unpaginated', auth(USER_ROLES.WORKSHOP_MEMBER, USER_ROLES.WORKSHOP_OWNER), validateUserAuthority(), carController.getAllUnpaginatedCars);
 

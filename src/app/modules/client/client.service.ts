@@ -76,7 +76,11 @@ const createClient = async (payload: any) => {
                }
                return isExistClient;
           }
-          throw new AppError(StatusCodes.NOT_FOUND, 'Client already exist.');
+
+          if (payload.document) {
+               unlinkFile(payload.document);
+          }
+          throw new AppError(StatusCodes.NOT_FOUND, 'Client already exist.....');
      } else if (payload.clientType === CLIENT_TYPE.USER) {
           // use mongoose transaction
           const session = await mongoose.startSession();

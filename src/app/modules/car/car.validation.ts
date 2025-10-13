@@ -18,7 +18,7 @@ const createCarZodSchema = z.object({
                     symbol: z.string().optional(),
                     numberEnglish: z.string().optional(),
                     numberArabic: z.string().optional(),
-                    alphabetsCombinations: z.array(z.string()).optional(),
+                    alphabetsCombinations: z.array(z.string().min(2, 'Alphabets combinations is required')).optional(),
                })
                .optional(),
      }),
@@ -36,7 +36,7 @@ const updateCarZodSchema = z.object({
                     symbol: z.string().optional(),
                     numberEnglish: z.string().optional(),
                     numberArabic: z.string().optional(),
-                    alphabetsCombinations: z.array(z.string()).optional(),
+                    alphabetsCombinations: z.array(z.string().min(2, 'Alphabets combinations is required')).optional(),
                })
                .optional(),
      }),

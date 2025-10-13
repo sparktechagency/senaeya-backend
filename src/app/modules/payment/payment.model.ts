@@ -1,10 +1,19 @@
 import { Schema, model } from 'mongoose';
 import { Ipayment } from './payment.interface';
+import { PaymentMethod, PaymentStatus } from './payment.enum';
 
 const PaymentSchema = new Schema<Ipayment>({
-     image: { type: String, required: true },
-     title: { type: String,required: true },
-     description: { type: String,required: true },
+     providerWorkShopId: { type: Schema.Types.ObjectId, ref: 'WorkShop', required: true },
+     invoiceId: { type: Schema.Types.ObjectId, ref: 'Invoice', required: true },
+     paymentMethod: { type: String, enum: PaymentMethod, required: true },
+     paymentStatus: { type: String, enum: PaymentStatus, required: true },
+     amount: { type: Number, required: true },
+     isCashRecieved: { type: Boolean, required: false, default: null },
+     cardApprovalCode: { type: String, required: false, default: null },
+     isRecievedTransfer: { type: Boolean, required: false, default: null },
+     postPaymentDate: { type: Date, required: false, default: null },
+     createdAt: { type: Date, required: true },
+     updatedAt: { type: Date, required: true },
      isDeleted: { type: Boolean, default: false },
      deletedAt: { type: Date },
 }, { timestamps: true });
