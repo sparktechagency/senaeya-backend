@@ -1,10 +1,9 @@
 import { Types } from "mongoose";
-import { PaymentMethod } from "./payment.enum";
-import { PaymentStatus } from "twilio/lib/rest/api/v2010/account/call/payment";
+import { PaymentMethod, PaymentStatus } from "./payment.enum";
 
 export interface Ipayment {
      providerWorkShopId: Types.ObjectId;
-     invoiceId: Types.ObjectId;
+     invoice: Types.ObjectId;
      paymentMethod: PaymentMethod;
      paymentStatus: PaymentStatus;
      amount: number;

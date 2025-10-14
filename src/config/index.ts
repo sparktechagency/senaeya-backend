@@ -59,4 +59,10 @@ export default {
           token: process.env.WHATSAPP_TOKEN,
           instanceId: process.env.WHATSAPP_INSTANCE_ID,
      },
+     aws: {
+          access_key_id: process.env.AWS_ACCESS_KEY_ID,
+          secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
+          region: process.env.AWS_REGION,
+          bucket_name: process.env.AWS_BUCKET_NAME,
+     },
 };

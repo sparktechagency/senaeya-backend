@@ -9,6 +9,7 @@ export interface IInvoiceWork {
 }
 
 export interface IInvoice {
+     _id?: Types.ObjectId;
      providerWorkShopId: Types.ObjectId;
      client: Types.ObjectId;
      discount?: number;

@@ -13,6 +13,7 @@ import { carBrandCountriesRoutes } from '../app/modules/carBrandCountries/carBra
 import { workRoutes } from '../app/modules/work/work.route';
 import { expenseRoutes } from '../app/modules/expense/expense.route';
 import { invoiceRoutes } from '../app/modules/invoice/invoice.route';
+import { paymentRoutes } from '../app/modules/payment/payment.route';
 const router = express.Router();
 const routes = [
      {
@@ -70,6 +71,10 @@ const routes = [
      {
           path: '/invoices',
           route: invoiceRoutes,
+     },
+     {
+          path: '/payments',
+          route: paymentRoutes,
      }
 ];
 

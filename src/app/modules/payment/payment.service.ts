@@ -1,10 +1,22 @@
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
 import { Ipayment } from './payment.interface';
-import { Payment } from './payment.model';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { Invoice } from '../invoice/invoice.model';
+import { PaymentMethod } from './payment.enum';
+import { PaymentStatus } from './payment.enum';
+import mongoose from 'mongoose';
+import { WorkShop } from '../workShop/workShop.model';
+import { whatsAppTemplate } from '../../../shared/whatsAppTemplate';
+import { whatsAppHelper } from '../../../helpers/whatsAppHelper';
+import { Payment } from './payment.model';
+import { generatePDF } from './payment.utils';
+import { S3Helper } from '../../../helpers/aws/s3helper';
+import path from 'path';
+import fs from 'fs';
+import { FOLDER_NAMES } from '../../../enums/files';
 
-const createPayment = async (payload: Ipayment): Promise<Ipayment> => {
+const createPayment = async (payload: Ipayment) => {
      // /**
      //  * for payment module ⬇️⬇️⬇️⬇️⬇️
      //  * check the paymentMethod
@@ -22,11 +34,134 @@ const createPayment = async (payload: Ipayment): Promise<Ipayment> => {
      //  *                       create the invoice
      //  * convert the postPaymentDate from string to Date for POSTPAID paymentMethod
      //  */
-     const result = await Payment.create(payload);
-     if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Payment not found.');
+
+     const isExistPayment = await Payment.findOne({ invoice: payload.invoice, providerWorkShopId: payload.providerWorkShopId });
+     if (isExistPayment) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Payment already exists.');
      }
-     return result;
+     const invoice = await Invoice.findOne({ _id: payload.invoice, providerWorkShopId: payload.providerWorkShopId });
+
+     if (!invoice) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Invoice not found.');
+     }
+     const payloadFields = Object.keys(payload);
+     if (invoice.paymentMethod === PaymentMethod.CASH) {
+          // delete fileds
+          delete payload.cardApprovalCode;
+          delete payload.isRecievedTransfer;
+          delete payload.postPaymentDate;
+          if (!payloadFields.includes('isCashRecieved')) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Cash Recieved is required for CASH payment method');
+          }
+     } else if (invoice.paymentMethod === PaymentMethod.TRANSFER) {
+          // delete fileds
+          delete payload.isCashRecieved;
+          delete payload.cardApprovalCode;
+          delete payload.postPaymentDate;
+          if (!payloadFields.includes('isRecievedTransfer')) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Recieved Transfer is required for TRANSFER payment method');
+          }
+     } else if (invoice.paymentMethod === PaymentMethod.CARD) {
+          // delete fileds
+          delete payload.isCashRecieved;
+          delete payload.isRecievedTransfer;
+          delete payload.postPaymentDate;
+          if (!payload.cardApprovalCode) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Card Approval Code is required for CARD payment method');
+          }
+     }
+     // finalize payload
+     payload.amount = invoice.finalCost;
+     payload.paymentMethod = invoice.paymentMethod;
+     payload.paymentStatus = invoice.paymentStatus;
+     if (invoice.paymentMethod === PaymentMethod.POSTPAID) {
+          payload.postPaymentDate = invoice.postPaymentDate;
+     } else if (invoice.paymentMethod === PaymentMethod.CASH && payload.isCashRecieved) {
+          payload.paymentStatus = PaymentStatus.PAID;
+     } else if (invoice.paymentMethod === PaymentMethod.TRANSFER && payload.isRecievedTransfer) {
+          payload.paymentStatus = PaymentStatus.PAID;
+     } else if (invoice.paymentMethod === PaymentMethod.CARD && payload.cardApprovalCode) {
+          payload.paymentStatus = PaymentStatus.PAID;
+     }
+
+     // use mongoose transaction
+     const session = await mongoose.startSession();
+     session.startTransaction();
+
+     try {
+          const [payment] = await Payment.create([payload], { session });
+          if (!payment) {
+               throw new AppError(StatusCodes.NOT_FOUND, 'Payment not found.');
+          }
+          const updatedInvoice = await Invoice.findByIdAndUpdate(invoice._id, { paymentStatus: payment.paymentStatus, payment: payment._id }, { new: true, session })
+               .populate({
+                    path: 'providerWorkShopId',
+                    select: 'workshopNameEnglish workshopNameArabic bankAccountNumber taxVatNumber crn image',
+               })
+               .populate({
+                    path: 'client',
+                    select: 'clientId clientType',
+                    populate: {
+                         path: 'clientId',
+                         select: 'name contact',
+                    },
+               })
+               .populate({
+                    path: 'car',
+                    select: 'model brand year plateNumberForInternational plateNumberForSaudi',
+                    populate: {
+                         path: 'brand plateNumberForSaudi.symbol',
+                         // model: 'CarBrand',
+                         // select: 'title image',
+                    },
+               });
+          if (!updatedInvoice) {
+               throw new AppError(StatusCodes.NOT_FOUND, 'Invoice not found.');
+          }
+
+          const updatedProviderWorkshop = await WorkShop.findByIdAndUpdate(
+               invoice.providerWorkShopId,
+               {
+                    $inc: { generatedInvoiceCount: 1 }, // Correct usage of $inc operator
+               },
+               { new: true, session },
+          );
+          if (!updatedProviderWorkshop) {
+               throw new AppError(StatusCodes.NOT_FOUND, 'Provider Workshop not found.');
+          }
+
+          // // Commit the transaction
+          // await session.commitTransaction();
+          // session.endSession();
+
+          // // send invoiceSheet to client
+          let createInvoiceTemplate: string = '';
+          if (payment.paymentStatus === PaymentStatus.PAID) {
+               createInvoiceTemplate = whatsAppTemplate.createInvoice(updatedInvoice);
+               const invoiceInpdfPath = await generatePDF(createInvoiceTemplate );
+               const fileBuffer = fs.readFileSync(invoiceInpdfPath);
+               const result = await S3Helper.uploadBufferToS3(fileBuffer, 'pdf', invoice._id.toString(), 'application/pdf');
+               whatsAppHelper.sendWhatsAppPDFMessage({
+                    to: (updatedInvoice.client as any).clientId.contact,
+                    priority: 10,
+                    referenceId: '',
+                    msgId: '',
+                    mentions: '',
+                    filename: `${invoice._id.toString()}_invoice.pdf`,
+                    document: result,
+                    caption: 'Invoice',
+               });
+          }
+
+          return payment;
+     } catch (error) {
+          console.log('🚀 ~ createPayment ~ error:', error);
+          // Abort the transaction on error
+          await session.abortTransaction();
+          session.endSession();
+
+          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Payment not created.');
+     }
 };
 
 const getAllPayments = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: Ipayment[] }> => {

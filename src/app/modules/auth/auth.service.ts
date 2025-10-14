@@ -87,7 +87,7 @@ const forgetPasswordToDB = async (contact: string) => {
      //send message
      const values = { name: isExistUser.name, password: newPassword, contact: isExistUser.contact };
      const message = whatsAppTemplate.forgetPassword(values);
-     await whatsAppHelper.sendWhatsApp({ to: contact, body: message });
+     await whatsAppHelper.sendWhatsAppTextMessage({ to: contact, body: message });
 };
 // resend otp
 const resendOtpFromDb = async (email: string) => {

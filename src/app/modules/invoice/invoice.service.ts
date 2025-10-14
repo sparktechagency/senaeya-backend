@@ -10,11 +10,13 @@ const createInvoice = async (payload: IInvoice) => {
           payload.postPaymentDate = null;
      } else {
           // convert payload.postPaymentDate string to Date
-          console.log("🚀 ~ createInvoice ~ payload.postPaymentDate:", payload.postPaymentDate)
           if (payload.postPaymentDate && typeof payload.postPaymentDate === 'string') {
                payload.postPaymentDate = new Date(payload.postPaymentDate);
+               // check its not in the past
+               if (payload.postPaymentDate < new Date()) {
+                    throw new AppError(StatusCodes.BAD_REQUEST, 'Post Payment Date cannot be in the past');
+               }
           }
-          console.log("🚀 ~ createInvoice ~ payload.postPaymentDate:", payload.postPaymentDate)
      }
      const invoice = new Invoice(payload);
      // Validate the order data
@@ -24,6 +26,14 @@ const createInvoice = async (payload: IInvoice) => {
           throw new AppError(StatusCodes.NOT_FOUND, 'Invoice not found.');
      }
      const populatedResult = await Invoice.findById(result._id)
+          .populate({
+               path: 'providerWorkShopId',
+               // select: 'clientId clientType',
+               // populate: {
+               //      path: 'clientId',
+               //      select: 'name contact',
+               // },
+          })
           .populate({
                path: 'client',
                select: 'clientId clientType',
@@ -86,6 +96,14 @@ const hardDeleteInvoice = async (id: string): Promise<IInvoice | null> => {
 
 const getInvoiceById = async (id: string): Promise<IInvoice | null> => {
      const result = await Invoice.findById(id)
+          .populate({
+               path: 'providerWorkShopId',
+               // select: 'clientId clientType',
+               // populate: {
+               //      path: 'clientId',
+               //      select: 'name contact',
+               // },
+          })
           .populate({
                path: 'client',
                select: 'clientId clientType',

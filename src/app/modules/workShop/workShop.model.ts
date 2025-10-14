@@ -80,6 +80,7 @@ const WorkShopSchema = new Schema<IworkShop>(
           description: { type: String, required: false },
           isDeleted: { type: Boolean, default: false },
           deletedAt: { type: Date },
+          generatedInvoiceCount: { type: Number, default: 0 },
      },
      { timestamps: true },
 );
