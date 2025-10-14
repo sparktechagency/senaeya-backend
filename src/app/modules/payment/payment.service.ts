@@ -107,6 +107,14 @@ const createPayment = async (payload: Ipayment) => {
                     },
                })
                .populate({
+                    path: 'worksList sparePartsList',
+                    select: 'work quantity finalCost',
+                    populate: {
+                         path: 'work',
+                         select: 'title cost',
+                    },
+               })
+               .populate({
                     path: 'car',
                     select: 'model brand year plateNumberForInternational plateNumberForSaudi',
                     populate: {
@@ -131,14 +139,13 @@ const createPayment = async (payload: Ipayment) => {
           }
 
           // // Commit the transaction
-          // await session.commitTransaction();
-          // session.endSession();
+          await session.commitTransaction();
+          session.endSession();
 
           // // send invoiceSheet to client
-          let createInvoiceTemplate: string = '';
           if (payment.paymentStatus === PaymentStatus.PAID) {
-               createInvoiceTemplate = whatsAppTemplate.createInvoice(updatedInvoice);
-               const invoiceInpdfPath = await generatePDF(createInvoiceTemplate );
+               const createInvoiceTemplate = whatsAppTemplate.createInvoice(updatedInvoice);
+               const invoiceInpdfPath = await generatePDF(createInvoiceTemplate);
                const fileBuffer = fs.readFileSync(invoiceInpdfPath);
                const result = await S3Helper.uploadBufferToS3(fileBuffer, 'pdf', invoice._id.toString(), 'application/pdf');
                whatsAppHelper.sendWhatsAppPDFMessage({

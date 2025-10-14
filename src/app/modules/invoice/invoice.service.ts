@@ -28,11 +28,7 @@ const createInvoice = async (payload: IInvoice) => {
      const populatedResult = await Invoice.findById(result._id)
           .populate({
                path: 'providerWorkShopId',
-               // select: 'clientId clientType',
-               // populate: {
-               //      path: 'clientId',
-               //      select: 'name contact',
-               // },
+               select: 'workshopNameEnglish workshopNameArabic bankAccountNumber taxVatNumber crn image',
           })
           .populate({
                path: 'client',
@@ -40,6 +36,14 @@ const createInvoice = async (payload: IInvoice) => {
                populate: {
                     path: 'clientId',
                     select: 'name contact',
+               },
+          })
+          .populate({
+               path: 'worksList sparePartsList',
+               select: 'work quantity finalCost',
+               populate: {
+                    path: 'work',
+                    select: 'title cost',
                },
           })
           .populate({
@@ -98,11 +102,7 @@ const getInvoiceById = async (id: string): Promise<IInvoice | null> => {
      const result = await Invoice.findById(id)
           .populate({
                path: 'providerWorkShopId',
-               // select: 'clientId clientType',
-               // populate: {
-               //      path: 'clientId',
-               //      select: 'name contact',
-               // },
+               select: 'workshopNameEnglish workshopNameArabic bankAccountNumber taxVatNumber crn image',
           })
           .populate({
                path: 'client',
@@ -110,6 +110,14 @@ const getInvoiceById = async (id: string): Promise<IInvoice | null> => {
                populate: {
                     path: 'clientId',
                     select: 'name contact',
+               },
+          })
+          .populate({
+               path: 'worksList sparePartsList',
+               select: 'work quantity finalCost',
+               populate: {
+                    path: 'work',
+                    select: 'title cost',
                },
           })
           .populate({
