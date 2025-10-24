@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "marafy",
+  "private_key_id": "db4176b9435645941ad9d2e6d2fb867b5e938156",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQChWCZhcdJHbNm2\ne+5Rsd5OlrCy4FTd6+tmf3npVM5fgh81BfPbkUPjSpsWqDenHuNE6IlttBU4WOpy\nX6HwVFpQp3pYF/g/yhLIKmgUE6i525ePCyi8vE/1KxzYbqDnO9NVIvm2MbK0SL61\nFPXKZflZw+Ef0Phb9eAqUzY6KvXCUoi3MDEAs/dsWC9RwB/o4pwvkfsi5NjZSnrN\nWgtITxYFoatBcgPeXsUP05r15ef9WLeyTL0ToGhpVGirVpDvjowssWHDGgWsFmAa\npeo7MMVq2upJmLOZd0vHJX73k0aAaAX3Re89B+pvPNL+2hs2bJf+drPgMH7cjz18\nncF30ROBAgMBAAECggEAGcVevAnWMJpuW/uHoXzrqVngd3HlnFzmiMSr0F0/aXn7\nShjdTqDxWwi7pO7RlNwWKReLe/5btVheek5UK3MNyfw2SoPpnybDwT0kyrApLyao\nGq0JoLvjeaGdReTFxqmDpAGmKTfe93T3IS1r5RxMq83h05cpVGb9m0UXUEs0XglX\nyBV7QIj0mlOgei+QRWzP/JN3IPb/f+jNJuETa/x+ktkWxU4RsKKe50+iP0LAZA6d\n+w9DvfRlHFNv9CiXJGRJJY4iPJbhyI8Bfj3MXsB/5SVnnYo7CrQZjyE0XLVpb8vb\nQAZQJV7TFdgATDQrBBxBOT6ppdrPfcfW+PEPy26c0QKBgQDYSW0WWGiIALJZX/Xi\nW4fHexqQ+aVo7oZ15h4HY8oo/cJKRIa2tId0rNPDN1es3+ePSK8Cpnd4stJd07VY\nKqVQqgJuLC6ph72GPXKUa2Hv/RWBR+emZCnNPGQ0kDEWsEDPoCuH6iq+fx3I1IQW\nhr2f6NlXdXVww2xU0NCsEiWkWwKBgQC++CY2x+LV9JfHUx8wB0/wKLE8E5O/kiG0\n5InsSqW7QWZubcj9kW1JS9nykxklhobsHP24ibh2yZHh9m4tAawnaXaDa0NwgKvz\nElXNbzyGcj05Mo6zraUJ2/o8RUxR7GRf0dTZGSyXhpf+OeDYweVsW6hxJHu7OoKP\ncDoKCah+UwKBgQDTmpLFh91NIhFba4zu1snymjgVmokALk0Sz/6VEEZa8FnDu2Np\nIRpdRjEwDtcSZUTxZBUFLMQ6LAmwjk4fYim2z33tOAC3D/yWd0vAdYat+xetEiJL\nIjfbebg3zNKZ9fqSp4uvP6RuF4OWVoScXVrsNi1daadqmWdFW76selylfQKBgFnJ\nWEY3UrpfpqDrvuUY+weiSjpBxhyy+zAOp542NpfFFwDikzZNEsH8bLt1V8Rh7LvE\nobIK5nTLLtC7yW9VsvhQyIzfeLTDepTtUPQm0aEwwwJKd/eYs9jf2VZPCqQV7ddz\nU4zDHkkb2giIc+PVviVlLtwLWDVePBZuoIspoVPLAoGAZnPRYuuoa1SSkfA/KDzh\nJLY6gXnG0bYdyQX1RGZ+VnUIn3eHp9BCP6pTpG0/sQZ0ytV4c4wxQSmCPDOovQ2S\nBV8vQoQBYUuMyNLBuTU7bm71MtDSclmUDx7LbyMMy1JLuos/7O5JPQoUuTTxkYXH\nmngfg2diHZDyHE7uOEi+700=\n-----END PRIVATE KEY-----\n",
+  "client_email": "senaeya-service-accoun@marafy.iam.gserviceaccount.com",
+  "client_id": "115655191939243577059",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/senaeya-service-accoun%40marafy.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
