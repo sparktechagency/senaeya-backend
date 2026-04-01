@@ -32,6 +32,7 @@ const routes = [
           path: '/auth',
           route: AuthRouter,
      },
+     // CHECK
      {
           path: '/users',
           route: UserRouter,
